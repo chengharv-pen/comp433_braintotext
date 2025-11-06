@@ -23,6 +23,7 @@ torch.backends.cudnn.deterministic = True # makes training more reproducible
 torch._dynamo.config.cache_size_limit = 64
 
 from rnn_model import GRUDecoder
+from transformer.model import BrainPhonemeTransformer
 
 class BrainToTextDecoder_Trainer:
     """
@@ -116,18 +117,39 @@ class BrainToTextDecoder_Trainer:
             random.seed(self.args['seed'])
             torch.manual_seed(self.args['seed'])
 
-        # Initialize the model 
-        self.model = GRUDecoder(
-            neural_dim = self.args['model']['n_input_features'],
-            n_units = self.args['model']['n_units'],
-            n_days = len(self.args['dataset']['sessions']),
-            n_classes  = self.args['dataset']['n_classes'],
-            rnn_dropout = self.args['model']['rnn_dropout'], 
-            input_dropout = self.args['model']['input_network']['input_layer_dropout'], 
-            n_layers = self.args['model']['n_layers'],
-            patch_size = self.args['model']['patch_size'],
-            patch_stride = self.args['model']['patch_stride'],
-        )
+        # Initialize the model. Supports either the legacy GRUDecoder or a
+        # lightweight Transformer replacement. The selection is controlled
+        # by `args['model']['type']` ("rnn" or "transformer").
+        model_type = self.args['model'].get('type', 'rnn') if isinstance(self.args['model'], dict) else 'rnn'
+
+        if model_type == 'transformer':
+            # Map common config names to transformer constructor
+            model_dim = self.args['model'].get('model_dim', self.args['model'].get('n_units', 256))
+            nhead = self.args['model'].get('nhead', 8)
+            num_layers = self.args['model'].get('n_layers', 6)
+            max_len = self.args['model'].get('max_len', 5000)
+
+            self.model = BrainPhonemeTransformer(
+                input_dim = self.args['model']['n_input_features'],
+                model_dim = model_dim,
+                num_layers = num_layers,
+                nhead = nhead,
+                num_phonemes = self.args['dataset']['n_classes'],
+                max_len = max_len,
+            )
+        else:
+            # default: RNN decoder (backwards compatible)
+            self.model = GRUDecoder(
+                neural_dim = self.args['model']['n_input_features'],
+                n_units = self.args['model']['n_units'],
+                n_days = len(self.args['dataset']['sessions']),
+                n_classes  = self.args['dataset']['n_classes'],
+                rnn_dropout = self.args['model']['rnn_dropout'], 
+                input_dropout = self.args['model']['input_network']['input_layer_dropout'], 
+                n_layers = self.args['model']['n_layers'],
+                patch_size = self.args['model']['patch_size'],
+                patch_stride = self.args['model']['patch_stride'],
+            )
 
         # Call torch.compile to speed up training
         self.logger.info("Using torch.compile")
