@@ -1,3 +1,9 @@
+# See <code>project_files</code> directory for our modifications
+
+Original README.md follows below
+
+---
+
 # An Accurate and Rapidly Calibrating Speech Neuroprosthesis
 *The New England Journal of Medicine* (2024)
 
