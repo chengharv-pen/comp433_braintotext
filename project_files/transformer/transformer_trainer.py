@@ -115,9 +115,11 @@ class BrainToText_Trainer:
             n_units=self.args['model']['n_units'],
             n_days=len(self.args['dataset']['sessions']),
             n_classes=self.args['dataset']['n_classes'],
-            input_dropout=self.args['model']['input_network']['input_layer_dropout'],
             n_layers=self.args['model']['n_layers'],
             n_heads=self.args['model']['n_heads'],
+            dim_feedforward=self.args['model']['dim_feedforward'],
+            trans_dropout=self.args['model']['trans_dropout'],
+            input_dropout=self.args['model']['input_network']['input_layer_dropout'],
             patch_size=self.args['model']['patch_size'],
             patch_stride=self.args['model']['patch_stride'],
         )

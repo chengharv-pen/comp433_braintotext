@@ -104,12 +104,20 @@ WORKDIR /workspace
 COPY --from=builder /opt/conda/envs/b2txt25 /opt/conda/envs/b2txt25
 COPY --from=builder /opt/conda/envs/b2txt25_lm /opt/conda/envs/b2txt25_lm
 
-# Copy the actual project code last (keeps builds small)
+# Copy the actual project code last
 COPY . /workspace/
 
 # Default environment
 ENV DEFAULT_ENV=b2txt25
 SHELL ["bash", "-lc"]
 RUN echo "conda activate ${DEFAULT_ENV}" >> ~/.bashrc
+
+# Install lsb-release and redis
+RUN apt-get update && apt-get install -y curl gnupg lsb-release \
+    && curl -fsSL https://packages.redis.io/gpg | gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" \
+       > /etc/apt/sources.list.d/redis.list \
+    && apt-get update && apt-get install -y redis \
+    && rm -rf /var/lib/apt/lists/*
 
 CMD ["/bin/bash", "-il"]
