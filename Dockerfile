@@ -104,8 +104,6 @@ WORKDIR /workspace
 COPY --from=builder /opt/conda/envs/b2txt25 /opt/conda/envs/b2txt25
 COPY --from=builder /opt/conda/envs/b2txt25_lm /opt/conda/envs/b2txt25_lm
 
-# Copy the actual project code last
-COPY . /workspace/
 
 # Default environment
 ENV DEFAULT_ENV=b2txt25
@@ -122,3 +120,8 @@ RUN apt-get update && apt-get install -y curl gnupg lsb-release \
     && rm -rf /var/lib/apt/lists/*
 
 CMD ["/bin/bash", "-il"]
+
+# for runpod
+#RUN apt-get update && apt-get install -y ttyd
+#EXPOSE 7681
+#CMD ["ttyd", "-p", "7681", "bash"]
