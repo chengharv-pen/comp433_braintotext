@@ -118,6 +118,7 @@ RUN apt-get update && apt-get install -y curl gnupg lsb-release \
     && echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" \
        > /etc/apt/sources.list.d/redis.list \
     && apt-get update && apt-get install -y redis \
+    && apt-get update && apt-get install -y nano \
     && rm -rf /var/lib/apt/lists/*
 
 CMD ["/bin/bash", "-il"]
