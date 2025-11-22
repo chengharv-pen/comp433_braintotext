@@ -1,10 +1,10 @@
 model:
   n_input_features: 512 # number of input features in the neural data. (2 features per electrode, 256 electrodes)
   n_units: 512 # number of units for a TransformerEncoder layer?
-  trans_dropout: 0.4 # dropout rate for the TransformerEncoder layers?
+  trans_dropout: 0.2 # dropout rate for the TransformerEncoder layers?
   trainable: true # whether the Transformer layers are trainable
-  dim_feedforward: 2048 # dimension of the feedforward network model
-  n_layers: 5 # number of TransformerEncoder layers
+  dim_feedforward: 3072 # dimension of the feedforward network model
+  n_layers: 3 # number of TransformerEncoder layers
   n_heads: 8 # number of heads
   patch_size: 14 # size of the input patches (14 time steps)
   patch_stride: 4 # stride for the input patches (4 time steps)
