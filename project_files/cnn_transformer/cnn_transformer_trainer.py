@@ -129,10 +129,6 @@ class BrainToText_Trainer:
             input_dropout=self.args['model']['input_network']['input_layer_dropout'],
             activation=self.args['model']['activation'],
 
-            # patching
-            patch_size=self.args['model']['patch_size'],
-            patch_stride=self.args['model']['patch_stride'],
-
             # prediction
             pooling=self.args['model']['pooling'],
             cls_token=self.args['model']['cls_token'],
@@ -528,17 +524,15 @@ class BrainToText_Trainer:
                 # Apply augmentations to the data
                 features, n_time_steps = self.transform_data(features, n_time_steps, 'train')
 
-                adjusted_lens = ((n_time_steps - self.args['model']['patch_size']) / self.args['model'][
-                    'patch_stride'] + 1).to(torch.int32)
-
                 # Get phoneme predictions
                 logits = self.model(features, day_indicies)
+                input_lengths = torch.full((logits.size(0),), logits.size(1), dtype=torch.long, device=logits.device)
 
                 # Calculate CTC Loss
                 loss = self.ctc_loss(
                     log_probs=torch.permute(logits.log_softmax(2), [1, 0, 2]),
                     targets=labels,
-                    input_lengths=adjusted_lens,
+                    input_lengths=input_lengths,
                     target_lengths=phone_seq_lens
                 )
 
@@ -707,15 +701,13 @@ class BrainToText_Trainer:
                 with torch.autocast(device_type="cuda", enabled=self.args['use_amp'], dtype=torch.bfloat16):
                     features, n_time_steps = self.transform_data(features, n_time_steps, 'val')
 
-                    adjusted_lens = ((n_time_steps - self.args['model']['patch_size']) / self.args['model'][
-                        'patch_stride'] + 1).to(torch.int32)
-
                     logits = self.model(features, day_indicies)
+                    input_lengths = torch.full((logits.size(0),), logits.size(1), dtype=torch.long, device=logits.device)
 
                     loss = self.ctc_loss(
                         torch.permute(logits.log_softmax(2), [1, 0, 2]),
                         labels,
-                        adjusted_lens,
+                        input_lengths,
                         phone_seq_lens,
                     )
                     loss = torch.mean(loss)
@@ -726,7 +718,7 @@ class BrainToText_Trainer:
                 batch_edit_distance = 0
                 decoded_seqs = []
                 for iterIdx in range(logits.shape[0]):
-                    decoded_seq = torch.argmax(logits[iterIdx, 0: adjusted_lens[iterIdx], :].clone().detach(), dim=-1)
+                    decoded_seq = torch.argmax(logits[iterIdx, 0: input_lengths[iterIdx], :].clone().detach(), dim=-1)
                     decoded_seq = torch.unique_consecutive(decoded_seq, dim=-1)
                     decoded_seq = decoded_seq.cpu().detach().numpy()
                     decoded_seq = np.array([i for i in decoded_seq if i != 0])
@@ -751,7 +743,7 @@ class BrainToText_Trainer:
             if return_logits:
                 metrics['logits'].append(
                     logits.cpu().float().numpy())  # Will be in bfloat16 if AMP is enabled, so need to set back to float32
-                metrics['n_time_steps'].append(adjusted_lens.cpu().numpy())
+                metrics['n_time_steps'].append(input_lengths.cpu().numpy())
 
             if return_data:
                 metrics['input_features'].append(batch['input_features'].cpu().numpy())

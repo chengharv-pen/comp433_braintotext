@@ -61,14 +61,10 @@ class CNNTransformer(nn.Module):
         dim_feedforward=2048,
         trans_dropout=0.1,
         input_dropout=0.0,
-
-        # patching
-        patch_size=0,
-        patch_stride=0,
         activation="gelu",
 
         # prediction
-        pooling="mean",  # "mean" | "max" | "cls" | None (time-distributed)
+        pooling=None,
         cls_token=False,
         max_len=10000,
     ):
@@ -81,8 +77,6 @@ class CNNTransformer(nn.Module):
         trans_dropout (float)  - percentage of units to dropout during training
         input_dropout (float)  - percentage of input units to dropout during training
         n_layers    (int)      - number of recurrent layers
-        patch_size  (int)      - the number of timesteps to concat on initial input layer - a value of 0 will disable this "input concat" step
-        patch_stride(int)      - the number of timesteps to stride over when concatenating initial input
         activation (str)       - the activation function used for a transformer layer
         '''
         super().__init__()
@@ -98,10 +92,6 @@ class CNNTransformer(nn.Module):
         self.day_weights = nn.ParameterList([nn.Parameter(torch.eye(neural_dim)) for _ in range(n_days)])
         self.day_biases = nn.ParameterList([nn.Parameter(torch.zeros(1, neural_dim)) for _ in range(n_days)])
         self.day_layer_dropout = nn.Dropout(input_dropout)
-
-        # legacy, probably will not use it this time
-        self.patch_size = patch_size
-        self.patch_stride = patch_stride
 
         # 1d conv front-end
         conv_blocks = []
@@ -119,7 +109,7 @@ class CNNTransformer(nn.Module):
             self.cls_token = nn.Parameter(torch.randn(1, 1, n_units))  # added after projection
 
         # Project conv features to transformer d_model
-        self.input_proj = nn.Linear(self.input_size, n_units)
+        self.input_proj = nn.Linear(self.conv_output_channels, n_units)
 
         # Positional Encoding
         self.pos_encoding = PositionalEncoding(n_units)
@@ -164,23 +154,6 @@ class CNNTransformer(nn.Module):
         if self.day_layer_dropout.p > 0:
             x = self.day_layer_dropout(x)
 
-        # (Optionally) Perform input concat operation
-        if self.patch_size > 0:
-            x = x.unsqueeze(1)  # [batches, 1, timesteps, feature_dim]
-            x = x.permute(0, 3, 1, 2)  # [batches, feature_dim, 1, timesteps]
-
-            # Extract patches using unfold (sliding window)
-            x_unfold = x.unfold(3, self.patch_size,
-                                self.patch_stride)  # [batches, feature_dim, 1, num_patches, patch_size]
-
-            # Remove dummy height dimension and rearrange dimensions
-            x_unfold = x_unfold.squeeze(2)  # [batches, feature_dum, num_patches, patch_size]
-            x_unfold = x_unfold.permute(0, 2, 3, 1)  # [batches, num_patches, patch_size, feature_dim]
-
-            # Flatten last two dimensions (patch_size and features)
-            x = x_unfold.reshape(x.size(0), x_unfold.size(1), -1)
-
-
         # Pass through convs: conv1d expects [B, C, T]
         x = x.permute(0, 2, 1)  # [B, D, T]
         x = self.conv_frontend(x)  # [B, C_out, T_down]
@@ -205,26 +178,9 @@ class CNNTransformer(nn.Module):
         # Final normalization
         x = self.final_ln(x)
 
-
-        # Prediction
-        if self.pooling is None:
-            # CTC logits
-            logits = self.out(x)  # [B, T', n_classes]
-            return logits
-        else:
-            # pooled classification
-            if self.use_cls:
-                pooled = x[:, 0, :]  # CLS token
-            else:
-                if self.pooling == "mean":
-                    pooled = x.mean(dim=1)
-                elif self.pooling == "max":
-                    pooled, _ = x.max(dim=1)
-                else:
-                    # default to mean
-                    pooled = x.mean(dim=1)
-            logits = self.out(pooled)  # [B, n_classes]
-            return logits
+        # CTC logits
+        logits = self.out(x)  # [B, T', n_classes]
+        return logits
 
 
     def _init_weights(self):

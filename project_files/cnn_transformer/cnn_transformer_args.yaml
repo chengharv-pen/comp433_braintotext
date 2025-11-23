@@ -11,17 +11,13 @@ model:
   activation: 'gelu'
 
   # conv config
-  conv_channels: (128, 256, 256)
-  conv_kernel_sizes: (5, 5, 5)
-  conv_strides: (2, 2, 2)
-  conv_residual: (False, True, True)
-
-  # patching (UNUSED)
-  patch_size: 14 # size of the input patches (14 time steps)
-  patch_stride: 4 # stride for the input patches (4 time steps)
+  conv_channels: [128, 256, 256]
+  conv_kernel_sizes: [5, 5, 5]
+  conv_strides: [2, 2, 2]
+  conv_residual: [False, True, True]
 
   # prediction
-  pooling: 'mean'
+  pooling: None
   cls_token: false
   max_len: 5000
 
