@@ -88,7 +88,7 @@ class CustomTransformer(nn.Module):
         # Explicit initialization call
         self._init_weights()
 
-    def forward(self, x):
+    def forward(self, x, day_idx):
         '''
         x        (tensor)  - batch of examples (trials) of shape: (batch_size, time_series_length, neural_dim)
         day_idx  (tensor)  - tensor which is a list of day indexes corresponding to the day of each example in the batch x.
