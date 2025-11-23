@@ -282,7 +282,7 @@ if eval_type == 'val':
 
 
 # write predicted sentences to a csv file. put a timestamp in the filename (YYYYMMDD_HHMMSS)
-output_file = os.path.join(model_path, f'baseline_rnn_{eval_type}_predicted_sentences_{time.strftime("%Y%m%d_%H%M%S")}.csv')
+output_file = os.path.join(model_path, f'CNNTransformer_{eval_type}_predicted_sentences_{time.strftime("%Y%m%d_%H%M%S")}.csv')
 ids = [i for i in range(len(lm_results['pred_sentence']))]
 df_out = pd.DataFrame({'id': ids, 'text': lm_results['pred_sentence']})
 df_out.to_csv(output_file, index=False)

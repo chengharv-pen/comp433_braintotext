@@ -139,7 +139,7 @@ class CNNTransformer(nn.Module):
         # Explicit initialization call
         self._init_weights()
 
-    def forward(self, x, day_idx):
+    def forward(self, x, day_idx, states=None, return_state=False):
         '''
         x        (tensor)  - batch of examples (trials) of shape: (batch_size, time_series_length, neural_dim)
         day_idx  (tensor)  - tensor which is a list of day indexes corresponding to the day of each example in the batch x.
@@ -180,7 +180,12 @@ class CNNTransformer(nn.Module):
 
         # CTC logits
         logits = self.out(x)  # [B, T', n_classes]
-        return logits
+
+        # compatibility with evaluation script
+        if return_state:
+            return logits, None  # no recurrent state for CNN
+        else:
+            return logits
 
 
     def _init_weights(self):
