@@ -121,7 +121,7 @@ RUN apt-get update && apt-get install -y curl gnupg lsb-release \
 
 CMD ["/bin/bash", "-il"]
 
-# for runpod
+# for runpod, instead of the CMD at the end
 #RUN apt-get update && apt-get install -y ttyd
 #EXPOSE 7681
 #CMD ["ttyd", "-p", "7681", "bash"]
