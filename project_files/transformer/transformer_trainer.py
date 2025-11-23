@@ -244,7 +244,6 @@ class BrainToText_Trainer:
             self.load_model_checkpoint(self.args['init_checkpoint_path'])
 
         # Set transformer and/or input layers to not trainable if specified
-        # TODO: VERIFY THAT THIS REFACTOR WORKS
         for name, param in self.model.named_parameters():
             if not self.args['model']['trainable'] and 'encoder' in name:
                 param.requires_grad = False
@@ -263,12 +262,6 @@ class BrainToText_Trainer:
 
         Day weights should have a separate learning rate
         '''
-        # bias_params = [p for name, p in self.model.named_parameters() if 'gru.bias' in name or 'out.bias' in name]
-        # day_params = [p for name, p in self.model.named_parameters() if 'day_' in name]
-        # other_params = [p for name, p in self.model.named_parameters() if
-        #                 'day_' not in name and 'gru.bias' not in name and 'out.bias' not in name]
-
-        # TODO: VERIFY THAT THIS REFACTOR WORKS
         bias_params = [
             p for name, p in self.model.named_parameters()
             if name.endswith('bias') and 'day_' not in name

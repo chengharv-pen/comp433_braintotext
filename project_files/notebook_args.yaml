@@ -1,28 +1,17 @@
 model:
   n_input_features: 512 # number of input features in the neural data. (2 features per electrode, 256 electrodes)
   n_units: 512 # transformer embedding dimension (d_model)
-  trans_dropout: 0.2 # dropout rate for the TransformerEncoder layers
-  trainable: true # whether the Transformer layers are trainable
-  dim_feedforward: 3072 # dimension of the feedforward network model
+  encoder_dropout: 0.2 # dropout rate for the TransformerEncoder layers
+  dim_feedforward: 2048 # dimension of the feedforward network model
   n_layers: 3 # number of TransformerEncoder layers
   n_heads: 8 # number of heads
-  patch_size: 14 # size of the input patches (14 time steps)
-  patch_stride: 4 # stride for the input patches (4 time steps)
   activation: 'gelu'
-
-  input_network:
-    n_input_layers: 1 # number of input layers per network (one network for each day)
-    input_layer_sizes:
-    - 512 # size of the input layer (number of input features)
-    input_trainable: true # whether the input layer is trainable
-    input_layer_dropout: 0.2 # dropout rate for the input layer
 
 gpu_number: '0' # GPU number to use for training, formatted as a string (e.g., '0', '1', etc.)
 mode: train
-use_amp: true # whether to use automatic mixed precision (AMP) for training
 
-output_dir: trained_models/baseline_rnn # directory to save the trained model and logs
-checkpoint_dir: trained_models/baseline_rnn/checkpoint # directory to save checkpoints during training
+output_dir: trained_models/output_transformer # directory to save the trained model and logs
+checkpoint_dir: trained_models/output_transformer/checkpoint # directory to save checkpoints during training
 init_from_checkpoint: false # whether to initialize the model from a checkpoint
 init_checkpoint_path: None # path to the checkpoint to initialize the model from, if any
 save_best_checkpoint: true # whether to save the best checkpoint based on validation metrics
@@ -31,6 +20,10 @@ save_final_model: false # whether to save the final model after training
 save_val_metrics: true # whether to save validation metrics during training
 early_stopping: false # whether to use early stopping based on validation metrics
 early_stopping_val_steps: 20 # number of validation steps to wait before stopping training if no improvement is seen
+
+num_epochs: 1 # number of epochs to run
+lr: 0.003 # learning rate for optimizer
+
 
 num_training_batches: 100000 # number of training batches to run
 lr_scheduler_type: cosine # type of learning rate scheduler to use
@@ -84,7 +77,7 @@ dataset:
   test_percentage: 0.1 # percentage of data to use for testing
   feature_subset: null # specific features to include in the dataset
 
-  dataset_dir: ../../data/hdf5_data_final # directory containing the dataset, needs the double ../ this time
+  dataset_dir: ../data/hdf5_data_final # directory containing the dataset
   bad_trials_dict: null # dictionary of bad trials to exclude from the dataset
   sessions: # list of sessions to include in the dataset
   - t15.2023.08.11

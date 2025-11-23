@@ -16,6 +16,7 @@ class CustomTransformer(nn.Module):
         input_dropout = 0.0,
         patch_size = 0,
         patch_stride = 0,
+        activation = "relu",
     ):
         '''
         neural_dim  (int)      - number of channels in a single timestep (e.g. 512)
@@ -28,6 +29,7 @@ class CustomTransformer(nn.Module):
         n_layers    (int)      - number of recurrent layers
         patch_size  (int)      - the number of timesteps to concat on initial input layer - a value of 0 will disable this "input concat" step
         patch_stride(int)      - the number of timesteps to stride over when concatenating initial input
+        activation (str)       - the activation function used for a transformer layer
         '''
         super().__init__()
 
@@ -41,6 +43,8 @@ class CustomTransformer(nn.Module):
 
         self.patch_size = patch_size
         self.patch_stride = patch_stride
+
+        self.activation = activation
 
         # Parameters for the day-specific input layers
         self.day_layer_activation = nn.Softsign() # basically a shallower tanh
@@ -73,7 +77,8 @@ class CustomTransformer(nn.Module):
             nhead=n_heads,
             dim_feedforward=dim_feedforward,
             dropout=trans_dropout,
-            batch_first=True
+            batch_first=True,
+            activation=activation,
         )
         self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=n_layers)
 
@@ -83,12 +88,11 @@ class CustomTransformer(nn.Module):
         # Explicit initialization call
         self._init_weights()
 
-    def forward(self, x, day_idx):
+    def forward(self, x):
         '''
         x        (tensor)  - batch of examples (trials) of shape: (batch_size, time_series_length, neural_dim)
         day_idx  (tensor)  - tensor which is a list of day indexes corresponding to the day of each example in the batch x.
         '''
-
         # Apply day-specific layer to (hopefully) project neural data from the different days to the same latent space
         day_weights = torch.stack([self.day_weights[i] for i in day_idx], dim=0)
         day_biases = torch.cat([self.day_biases[i] for i in day_idx], dim=0).unsqueeze(1)
@@ -117,6 +121,7 @@ class CustomTransformer(nn.Module):
 
         # Project to d_model
         x = self.input_proj(x)
+        x = nn.functional.gelu(x)
 
         # Positional encoding
         x = self.pos_encoding(x)
