@@ -21,8 +21,8 @@ gpu_number: '0' # GPU number to use for training, formatted as a string (e.g., '
 mode: train
 use_amp: true # whether to use automatic mixed precision (AMP) for training
 
-output_dir: trained_models/baseline_rnn # directory to save the trained model and logs
-checkpoint_dir: trained_models/baseline_rnn/checkpoint # directory to save checkpoints during training
+output_dir: trained_models/transformer # directory to save the trained model and logs
+checkpoint_dir: trained_models/transformer/checkpoint # directory to save checkpoints during training
 init_from_checkpoint: false # whether to initialize the model from a checkpoint
 init_checkpoint_path: None # path to the checkpoint to initialize the model from, if any
 save_best_checkpoint: true # whether to save the best checkpoint based on validation metrics
@@ -34,18 +34,18 @@ early_stopping_val_steps: 20 # number of validation steps to wait before stoppin
 
 num_training_batches: 100000 # number of training batches to run
 lr_scheduler_type: cosine # type of learning rate scheduler to use
-lr_max: 0.0005 # maximum learning rate for the main model
+lr_max: 0.0003 # maximum learning rate for the main model
 lr_min: 0.00005 # minimum learning rate for the main model
 lr_decay_steps: 100000 # number of steps for the learning rate decay
-lr_warmup_steps: 10000 # number of warmup steps for the learning rate scheduler
-lr_max_day: 0.005 # maximum learning rate for the day specific input layers
-lr_min_day: 0.0001 # minimum learning rate for the day specific input layers
+lr_warmup_steps: 20000 # number of warmup steps for the learning rate scheduler
+lr_max_day: 0.0002 # maximum learning rate for the day specific input layers
+lr_min_day: 0.00005 # minimum learning rate for the day specific input layers
 lr_decay_steps_day: 100000 # number of steps for the learning rate decay for the day specific input layers
-lr_warmup_steps_day: 1000 # number of warmup steps for the learning rate scheduler for the day specific input layers
+lr_warmup_steps_day: 5000 # number of warmup steps for the learning rate scheduler for the day specific input layers
 
 beta0: 0.9 # beta0 parameter for the Adam optimizer
 beta1: 0.999 # beta1 parameter for the Adam optimizer
-epsilon: 0.1 # epsilon parameter for the Adam optimizer
+epsilon: 1e-8 # epsilon parameter for the Adam optimizer
 weight_decay: 0.001 # weight decay for the main model
 weight_decay_day: 0 # weight decay for the day specific input layers
 seed: 10 # random seed for reproducibility

@@ -18,13 +18,12 @@ from data_augmentations import gauss_smooth
 import torchaudio.functional as F # for edit distance
 from omegaconf import OmegaConf
 
-from transformer_model import CustomTransformer # our transformer model
+from cnn_transformer_model import CNNTransformer # our transformer model
 
 torch.set_float32_matmul_precision('high') # makes float32 matmuls faster on some GPUs
 torch.backends.cudnn.deterministic = True # makes training more reproducible
 torch._dynamo.config.cache_size_limit = 64
 
-# TODO: it might be best to just tweak rnn_trainer.py, and put it here, given our remaining time
 class BrainToText_Trainer:
     def __init__(self, args):
         '''
@@ -110,19 +109,34 @@ class BrainToText_Trainer:
             torch.manual_seed(self.args['seed'])
 
         # Initialize the model
-        self.model = CustomTransformer(
+        self.model = CNNTransformer(
             neural_dim=self.args['model']['n_input_features'],
             n_units=self.args['model']['n_units'],
             n_days=len(self.args['dataset']['sessions']),
             n_classes=self.args['dataset']['n_classes'],
+
+            # conv config
+            conv_channels=self.args['model']['conv_channels'],
+            conv_kernel_sizes=self.args['model']['conv_kernel_sizes'],
+            conv_strides=self.args['model']['conv_strides'],
+            conv_residual=self.args['model']['conv_residual'],
+
+            # transformer config
             n_layers=self.args['model']['n_layers'],
             n_heads=self.args['model']['n_heads'],
             dim_feedforward=self.args['model']['dim_feedforward'],
             trans_dropout=self.args['model']['trans_dropout'],
             input_dropout=self.args['model']['input_network']['input_layer_dropout'],
+            activation=self.args['model']['activation'],
+
+            # patching
             patch_size=self.args['model']['patch_size'],
             patch_stride=self.args['model']['patch_stride'],
-            activation=self.args['model']['activation'],
+
+            # prediction
+            pooling=self.args['model']['pooling'],
+            cls_token=self.args['model']['cls_token'],
+            max_len=self.args['model']['max_len'],
         )
 
         # Call torch.compile to speed up training
