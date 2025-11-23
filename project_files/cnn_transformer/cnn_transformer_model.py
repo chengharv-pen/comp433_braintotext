@@ -63,9 +63,8 @@ class CNNTransformer(nn.Module):
         input_dropout=0.0,
         activation="gelu",
 
-        # prediction
-        pooling=None,
-        cls_token=False,
+        # decoder config
+        n_decoder_layers=3,
         max_len=10000,
     ):
         '''
@@ -102,19 +101,16 @@ class CNNTransformer(nn.Module):
         self.conv_frontend = nn.Sequential(*conv_blocks)
         self.conv_output_channels = in_ch  # final channel size
 
-        # optional CLS token
-        self.cls_token = None
-        self.use_cls = cls_token
-        if cls_token:
-            self.cls_token = nn.Parameter(torch.randn(1, 1, n_units))  # added after projection
-
         # Project conv features to transformer d_model
         self.input_proj = nn.Linear(self.conv_output_channels, n_units)
 
-        # Positional Encoding
-        self.pos_encoding = PositionalEncoding(n_units)
+        # Positional Encoding (shared by encoder and decoder)
+        self.pos_encoding = PositionalEncoding(n_units, max_len=max_len)
 
-        # Transformer Encoder
+        # Target embedding for decoder (phoneme embeddings)
+        self.target_embedding = nn.Embedding(n_classes, n_units)
+
+        # Transformer encoder/decoder blocks
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=n_units,
             nhead=n_heads,
@@ -125,25 +121,41 @@ class CNNTransformer(nn.Module):
         )
         self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=n_layers)
 
-        # LayerNorm before head
+        decoder_layer = nn.TransformerDecoderLayer(
+            d_model=n_units,
+            nhead=n_heads,
+            dim_feedforward=dim_feedforward,
+            dropout=trans_dropout,
+            batch_first=True,
+            activation=activation,
+        )
+        self.decoder = nn.TransformerDecoder(decoder_layer, num_layers=n_decoder_layers)
+
+        # LayerNorm before output head
         self.final_ln = nn.LayerNorm(n_units)
 
-        # Prediction head
-        # If pooling is None -> time-distributed out (CTC). Else pooled classification head.
-        self.pooling = pooling
-        if pooling is None:
-            self.out = nn.Linear(n_units, n_classes)  # time-distributed
-        else:
-            self.out = nn.Linear(n_units, n_classes)  # applied after pooling (or on CLS token)
+        # Output projection to vocabulary
+        self.out = nn.Linear(n_units, n_classes)
 
         # Explicit initialization call
         self._init_weights()
 
-    def forward(self, x, day_idx):
+    def forward(self, x, day_idx, tgt=None):
         '''
         x        (tensor)  - batch of examples (trials) of shape: (batch_size, time_series_length, neural_dim)
         day_idx  (tensor)  - tensor which is a list of day indexes corresponding to the day of each example in the batch x.
+        tgt      (tensor)  - target sequence (batch_size, target_seq_length) for teacher forcing. During training, this should be
+                             the target phoneme sequence. During inference, pass None and use autoregressive decoding.
         '''
+        memory = self.encode(x, day_idx)
+
+        if tgt is None:
+            raise ValueError("Target sequence must be provided for forward pass. Use encode/decode helpers for autoregressive decoding.")
+
+        logits = self.decode(tgt, memory)
+        return logits
+
+    def encode(self, x, day_idx):
         # Apply day-specific layer to (hopefully) project neural data from the different days to the same latent space
         day_weights = torch.stack([self.day_weights[i] for i in day_idx], dim=0)
         day_biases = torch.cat([self.day_biases[i] for i in day_idx], dim=0).unsqueeze(1)
@@ -163,24 +175,33 @@ class CNNTransformer(nn.Module):
         x = self.input_proj(x)  # [B, T_down, n_units]
         x = F.gelu(x)
 
-        # Optionally prepend cls token
-        if self.use_cls:
-            b = x.size(0)
-            cls_token = self.cls_token.expand(b, -1, -1)  # [B,1,n_units]
-            x = torch.cat([cls_token, x], dim=1)  # [B, T+1, n_units]
+        # Positional encoding and encoder stack
+        memory = self.pos_encoding(x)
+        memory = self.encoder(memory)  # [B, T_down, n_units]
+        return memory
 
-        # Positional encoding
-        x = self.pos_encoding(x)
+    def decode(self, tgt, memory):
+        if tgt is None:
+            raise ValueError("Decoder target input must be provided.")
 
-        # Transformer encoder
-        x = self.encoder(x) # [B, T', n_units]
+        tgt_emb = self.target_embedding(tgt)
+        tgt_emb = self.pos_encoding(tgt_emb)
 
-        # Final normalization
-        x = self.final_ln(x)
+        tgt_mask = self._generate_square_subsequent_mask(tgt_emb.size(1), tgt_emb.device)
 
-        # CTC logits
-        logits = self.out(x)  # [B, T', n_classes]
+        decoder_out = self.decoder(
+            tgt=tgt_emb,
+            memory=memory,
+            tgt_mask=tgt_mask,
+        )
+
+        decoder_out = self.final_ln(decoder_out)
+        logits = self.out(decoder_out)
         return logits
+
+    def _generate_square_subsequent_mask(self, size, device):
+        mask = torch.triu(torch.ones(size, size, device=device) * float('-inf'), diagonal=1)
+        return mask
 
 
     def _init_weights(self):

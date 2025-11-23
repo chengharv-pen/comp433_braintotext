@@ -11,14 +11,17 @@ import logging
 import sys
 import json
 import pickle
+import torch.nn.functional as F_nn
 
 from dataset import BrainToTextDataset, train_test_split_indicies
 from data_augmentations import gauss_smooth
 
-import torchaudio.functional as F # for edit distance
+import torchaudio.functional as audio_F  # for edit distance
+from transformers.generation import BeamSearchScorer, LogitsProcessorList
 from omegaconf import OmegaConf
 
 from cnn_transformer_model import CNNTransformer # our transformer model
+from tokenizer_utils import BPETokenizerManager
 
 torch.set_float32_matmul_precision('high') # makes float32 matmuls faster on some GPUs
 torch.backends.cudnn.deterministic = True # makes training more reproducible
@@ -37,7 +40,7 @@ class BrainToText_Trainer:
         self.model = None
         self.optimizer = None
         self.learning_rate_scheduler = None
-        self.ctc_loss = None
+        self.loss_fn = None
 
         self.best_val_PER = torch.inf  # track best PER for checkpointing
         self.best_val_loss = torch.inf  # track best loss for checkpointing
@@ -48,6 +51,17 @@ class BrainToText_Trainer:
         self.val_loader = None
 
         self.transform_args = self.args['dataset']['data_transforms']
+        self.generation_args = self.args.get('generation', {})
+        self.tokenizer_config = self.args.get('tokenizer', {})
+        self.tokenizer = None
+        self.tokenizer_path = None
+        self.append_eos_to_targets = False
+        self.lowercase_transcriptions = self.tokenizer_config.get('lowercase', True)
+        self.vocab_size = self.args['dataset']['n_classes']
+
+        self.pad_token_id = self.args['model'].get('pad_token_id', 0)
+        self.bos_token_id = self.args['model'].get('bos_token_id', self.pad_token_id)
+        self.eos_token_id = self.args['model'].get('eos_token_id', self.pad_token_id)
 
         # Create output directory
         if args['mode'] == 'train':
@@ -108,12 +122,14 @@ class BrainToText_Trainer:
             random.seed(self.args['seed'])
             torch.manual_seed(self.args['seed'])
 
+        self._initialize_tokenizer_if_needed()
+
         # Initialize the model
         self.model = CNNTransformer(
             neural_dim=self.args['model']['n_input_features'],
             n_units=self.args['model']['n_units'],
             n_days=len(self.args['dataset']['sessions']),
-            n_classes=self.args['dataset']['n_classes'],
+            n_classes=self.vocab_size,
 
             # conv config
             conv_channels=self.args['model']['conv_channels'],
@@ -129,9 +145,8 @@ class BrainToText_Trainer:
             input_dropout=self.args['model']['input_network']['input_layer_dropout'],
             activation=self.args['model']['activation'],
 
-            # prediction
-            pooling=self.args['model']['pooling'],
-            cls_token=self.args['model']['cls_token'],
+            # decoder config
+            n_decoder_layers=self.args['model']['n_decoder_layers'],
             max_len=self.args['model']['max_len'],
         )
 
@@ -201,7 +216,12 @@ class BrainToText_Trainer:
             batch_size=self.args['dataset']['batch_size'],
             must_include_days=None,
             random_seed=self.args['dataset']['seed'],
-            feature_subset=feature_subset
+            feature_subset=feature_subset,
+            tokenizer_path=self.tokenizer_path,
+            pad_token_id=self.pad_token_id,
+            eos_token_id=self.eos_token_id,
+            append_eos=self.append_eos_to_targets,
+            lowercase_transcriptions=self.lowercase_transcriptions,
         )
         self.train_loader = DataLoader(
             self.train_dataset,
@@ -220,7 +240,12 @@ class BrainToText_Trainer:
             batch_size=self.args['dataset']['batch_size'],
             must_include_days=None,
             random_seed=self.args['dataset']['seed'],
-            feature_subset=feature_subset
+            feature_subset=feature_subset,
+            tokenizer_path=self.tokenizer_path,
+            pad_token_id=self.pad_token_id,
+            eos_token_id=self.eos_token_id,
+            append_eos=self.append_eos_to_targets,
+            lowercase_transcriptions=self.lowercase_transcriptions,
         )
         self.val_loader = DataLoader(
             self.val_dataset,
@@ -248,7 +273,7 @@ class BrainToText_Trainer:
         else:
             raise ValueError(f"Invalid learning rate scheduler type: {self.args['lr_scheduler_type']}")
 
-        self.ctc_loss = torch.nn.CTCLoss(blank=0, reduction='none', zero_infinity=False)
+        self.loss_fn = torch.nn.CrossEntropyLoss(ignore_index=self.pad_token_id, reduction='mean')  # ignore padding
 
         # If a checkpoint is provided, then load from checkpoint
         if self.args['init_from_checkpoint']:
@@ -478,6 +503,144 @@ class BrainToText_Trainer:
 
         return features, n_time_steps
 
+    def _initialize_tokenizer_if_needed(self):
+        if not self.tokenizer_config or not self.tokenizer_config.get('enabled', False):
+            self.tokenizer_path = None
+            self.append_eos_to_targets = False
+            return
+
+        tokenizer_type = self.tokenizer_config.get('type', 'bpe').lower()
+        if tokenizer_type != 'bpe':
+            raise ValueError(f"Unsupported tokenizer type: {tokenizer_type}")
+
+        manager = BPETokenizerManager(self.tokenizer_config, self.args['dataset'], logger=self.logger)
+        self.tokenizer = manager.get_tokenizer()
+        self.tokenizer_path = self.tokenizer_config['save_path']
+        self.vocab_size = self.tokenizer.get_vocab_size()
+
+        specials = self.tokenizer_config.get('special_tokens', {})
+        self.pad_token_id = self._get_required_token_id('pad', specials.get('pad'))
+        self.bos_token_id = self._get_required_token_id('bos', specials.get('bos'))
+        self.eos_token_id = self._get_required_token_id('eos', specials.get('eos'))
+
+        self.append_eos_to_targets = self.tokenizer_config.get('append_eos_to_targets', True)
+
+        if self.logger:
+            self.logger.info(
+                f"Initialized BPE tokenizer with vocab size {self.vocab_size} (path: {self.tokenizer_path})"
+            )
+
+    def _get_required_token_id(self, token_name: str, token_value: str) -> int:
+        if not token_value:
+            raise ValueError(f"tokenizer.special_tokens must define '{token_name}' when tokenizer is enabled")
+        if self.tokenizer is None:
+            raise ValueError("Tokenizer must be initialized before retrieving token ids")
+        token_id = self.tokenizer.token_to_id(token_value)
+        if token_id is None:
+            raise ValueError(f"Token '{token_value}' for '{token_name}' was not found in tokenizer vocabulary")
+        return token_id
+
+    def beam_search_decode(self, features, day_indicies):
+        '''
+        Run beam search decoding using Hugging Face utilities
+        '''
+        num_beams = max(1, self.generation_args.get('num_beams', 4))
+        max_length = self.generation_args.get('max_length', self.args['dataset']['max_seq_elements'])
+        length_penalty = self.generation_args.get('length_penalty', 1.0)
+        early_stopping = self.generation_args.get('early_stopping', False)
+
+        batch_size = features.size(0)
+        device = features.device
+        vocab_size = self.vocab_size
+
+        beam_scorer = BeamSearchScorer(
+            batch_size=batch_size,
+            num_beams=num_beams,
+            device=device,
+            length_penalty=length_penalty,
+            do_early_stopping=early_stopping,
+        )
+        logits_processor = LogitsProcessorList()
+
+        model_for_generation = getattr(self.model, '_orig_mod', self.model)
+
+        input_ids = torch.full(
+            (batch_size * num_beams, 1),
+            self.bos_token_id,
+            dtype=torch.long,
+            device=device,
+        )
+        beam_scores = torch.zeros((batch_size, num_beams), dtype=torch.float, device=device)
+        beam_scores[:, 1:] = -1e9
+        beam_scores = beam_scores.view(-1)
+
+        with torch.no_grad():
+            memory = model_for_generation.encode(features, day_indicies)
+            memory = memory.repeat_interleave(num_beams, dim=0)
+
+            cur_len = 1
+            next_tokens = None
+            next_indices = None
+
+            while cur_len < max_length:
+                logits = model_for_generation.decode(input_ids, memory)
+                next_token_logits = logits[:, -1, :]
+                next_token_scores = F_nn.log_softmax(next_token_logits, dim=-1)
+                next_token_scores = next_token_scores + beam_scores.unsqueeze(1)
+                next_token_scores = logits_processor(input_ids, next_token_scores)
+
+                next_token_scores = next_token_scores.view(batch_size, num_beams * vocab_size)
+                next_scores, next_tokens = torch.topk(
+                    next_token_scores,
+                    2 * num_beams,
+                    dim=1,
+                    largest=True,
+                    sorted=True,
+                )
+                next_indices = next_tokens // vocab_size
+                next_tokens = next_tokens % vocab_size
+
+                beam_outputs = beam_scorer.process(
+                    input_ids,
+                    next_scores,
+                    next_tokens,
+                    next_indices,
+                    pad_token_id=self.pad_token_id,
+                    eos_token_id=self.eos_token_id,
+                )
+
+                beam_scores = beam_outputs['next_beam_scores']
+                beam_next_tokens = beam_outputs['next_beam_tokens']
+                beam_next_indices = beam_outputs['next_beam_indices']
+
+                input_ids = torch.cat(
+                    [input_ids[beam_next_indices, :], beam_next_tokens.unsqueeze(-1)],
+                    dim=-1,
+                )
+                memory = memory[beam_next_indices]
+
+                cur_len += 1
+                if beam_scorer.is_done:
+                    break
+
+            if next_tokens is None:
+                next_tokens = torch.zeros((batch_size, num_beams), dtype=torch.long, device=device)
+                next_indices = torch.zeros_like(next_tokens)
+
+            sequence_outputs = beam_scorer.finalize(
+                input_ids,
+                beam_scores,
+                next_tokens,
+                next_indices,
+                pad_token_id=self.pad_token_id,
+                eos_token_id=self.eos_token_id,
+                max_length=max_length,
+            )
+
+        sequences = sequence_outputs['sequences']
+        sequences = sequences.view(batch_size, num_beams, -1)
+        return sequences[:, 0, :]
+
     def train(self):
         '''
         Train the model
@@ -513,9 +676,8 @@ class BrainToText_Trainer:
 
             # Move data to device
             features = batch['input_features'].to(self.device)
-            labels = batch['seq_class_ids'].to(self.device)
+            labels = batch['seq_class_ids'].to(self.device)  # [B, max_seq_len]
             n_time_steps = batch['n_time_steps'].to(self.device)
-            phone_seq_lens = batch['phone_seq_lens'].to(self.device)
             day_indicies = batch['day_indicies'].to(self.device)
 
             # Use autocast for efficiency
@@ -524,19 +686,24 @@ class BrainToText_Trainer:
                 # Apply augmentations to the data
                 features, n_time_steps = self.transform_data(features, n_time_steps, 'train')
 
-                # Get phoneme predictions
-                logits = self.model(features, day_indicies)
-                input_lengths = torch.full((logits.size(0),), logits.size(1), dtype=torch.long, device=logits.device)
+                # Prepare decoder input and target for teacher forcing
+                # Decoder input: prepend a start token (use class 1 as BOS) and remove last token
+                # Target: the original labels (shifted by 1 position)
+                batch_size = labels.size(0)
+                
+                # Create decoder input by prepending BOS token (class 1) to each sequence
+                bos_token = torch.full((batch_size, 1), self.bos_token_id, dtype=torch.long, device=self.device)
+                decoder_input = torch.cat([bos_token, labels[:, :-1]], dim=1)  # [B, max_seq_len]
+                
+                # Get phoneme predictions using teacher forcing
+                logits = self.model(features, day_indicies, tgt=decoder_input)  # [B, max_seq_len, n_classes]
 
-                # Calculate CTC Loss
-                loss = self.ctc_loss(
-                    log_probs=torch.permute(logits.log_softmax(2), [1, 0, 2]),
-                    targets=labels,
-                    input_lengths=input_lengths,
-                    target_lengths=phone_seq_lens
-                )
+                # Reshape for cross-entropy loss
+                logits_flat = logits.reshape(-1, logits.size(-1))  # [B*max_seq_len, n_classes]
+                labels_flat = labels.reshape(-1)  # [B*max_seq_len]
 
-                loss = torch.mean(loss)  # take mean loss over batches
+                # Calculate Cross-Entropy Loss (will ignore padding tokens where label=0)
+                loss = self.loss_fn(logits_flat, labels_flat)
 
             loss.backward()
 
@@ -621,7 +788,7 @@ class BrainToText_Trainer:
                 # Optionally save this validation checkpoint, regardless of performance
                 if self.args['save_all_val_steps']:
                     self.save_model_checkpoint(f'{self.args["checkpoint_dir"]}/checkpoint_batch_{i}',
-                                               val_metrics['avg_PER'])
+                                               val_metrics['avg_PER'], val_metrics['avg_loss'])
 
                 # Early stopping
                 if early_stopping and (val_steps_since_improvement >= early_stopping_val_steps):
@@ -637,7 +804,7 @@ class BrainToText_Trainer:
 
         # Save final model
         if self.args['save_final_model']:
-            self.save_model_checkpoint(f'{self.args["checkpoint_dir"]}/final_checkpoint_batch_{i}', val_PERs[-1])
+            self.save_model_checkpoint(f'{self.args["checkpoint_dir"]}/final_checkpoint_batch_{i}', val_PERs[-1], val_losses[-1])
 
         train_stats = {}
         train_stats['train_losses'] = train_losses
@@ -701,35 +868,47 @@ class BrainToText_Trainer:
                 with torch.autocast(device_type="cuda", enabled=self.args['use_amp'], dtype=torch.bfloat16):
                     features, n_time_steps = self.transform_data(features, n_time_steps, 'val')
 
-                    logits = self.model(features, day_indicies)
-                    input_lengths = torch.full((logits.size(0),), logits.size(1), dtype=torch.long, device=logits.device)
-
-                    loss = self.ctc_loss(
-                        torch.permute(logits.log_softmax(2), [1, 0, 2]),
-                        labels,
-                        input_lengths,
-                        phone_seq_lens,
-                    )
-                    loss = torch.mean(loss)
+                    # Prepare decoder input for teacher forcing during validation
+                    batch_size = labels.size(0)
+                    bos_token = torch.full((batch_size, 1), self.bos_token_id, dtype=torch.long, device=self.device)
+                    decoder_input = torch.cat([bos_token, labels[:, :-1]], dim=1)
+                    
+                    logits = self.model(features, day_indicies, tgt=decoder_input)  # [B, max_seq_len, n_classes]
+                    
+                    # Reshape for loss calculation
+                    logits_flat = logits.reshape(-1, logits.size(-1))
+                    labels_flat = labels.reshape(-1)
+                    
+                    loss = self.loss_fn(logits_flat, labels_flat)
 
                 metrics['losses'].append(loss.cpu().detach().numpy())
+
+                decoded_outputs = self.beam_search_decode(features, day_indicies)
 
                 # Calculate PER per day and also avg over entire validation set
                 batch_edit_distance = 0
                 decoded_seqs = []
-                for iterIdx in range(logits.shape[0]):
-                    decoded_seq = torch.argmax(logits[iterIdx, 0: input_lengths[iterIdx], :].clone().detach(), dim=-1)
-                    decoded_seq = torch.unique_consecutive(decoded_seq, dim=-1)
-                    decoded_seq = decoded_seq.cpu().detach().numpy()
-                    decoded_seq = np.array([i for i in decoded_seq if i != 0])
+                for sample_idx in range(decoded_outputs.shape[0]):
+                    decoded_seq = decoded_outputs[sample_idx].detach().cpu().tolist()
+                    cleaned = []
+                    for token in decoded_seq:
+                        if token == self.bos_token_id:
+                            continue
+                        if token == self.eos_token_id and self.eos_token_id != self.pad_token_id:
+                            break
+                        if token == self.pad_token_id:
+                            break
+                        cleaned.append(token)
 
-                    trueSeq = np.array(
-                        labels[iterIdx][0: phone_seq_lens[iterIdx]].cpu().detach()
-                    )
+                    if len(cleaned) > phone_seq_lens[sample_idx]:
+                        cleaned = cleaned[:phone_seq_lens[sample_idx]]
 
-                    batch_edit_distance += F.edit_distance(decoded_seq, trueSeq)
+                    decoded_arr = np.array(cleaned)
+                    true_seq = labels[sample_idx][0: phone_seq_lens[sample_idx]].cpu().detach().numpy()
 
-                    decoded_seqs.append(decoded_seq)
+                    batch_edit_distance += audio_F.edit_distance(decoded_arr, true_seq)
+
+                    decoded_seqs.append(decoded_arr)
 
             day = batch['day_indicies'][0].item()
 
@@ -743,7 +922,7 @@ class BrainToText_Trainer:
             if return_logits:
                 metrics['logits'].append(
                     logits.cpu().float().numpy())  # Will be in bfloat16 if AMP is enabled, so need to set back to float32
-                metrics['n_time_steps'].append(input_lengths.cpu().numpy())
+                metrics['n_time_steps'].append(torch.full((logits.size(0),), logits.size(1), dtype=torch.long).cpu().numpy())
 
             if return_data:
                 metrics['input_features'].append(batch['input_features'].cpu().numpy())
@@ -752,15 +931,14 @@ class BrainToText_Trainer:
             metrics['true_seq'].append(batch['seq_class_ids'].cpu().numpy())
             metrics['phone_seq_lens'].append(batch['phone_seq_lens'].cpu().numpy())
             metrics['transcription'].append(batch['transcriptions'].cpu().numpy())
-            metrics['losses'].append(loss.detach().item())
             metrics['block_nums'].append(batch['block_nums'].numpy())
             metrics['trial_nums'].append(batch['trial_nums'].numpy())
             metrics['day_indicies'].append(batch['day_indicies'].cpu().numpy())
 
-        avg_PER = total_edit_distance / total_seq_length
+        avg_per = total_edit_distance / total_seq_length
 
         metrics['day_PERs'] = day_per
-        metrics['avg_PER'] = avg_PER.item()
+        metrics['avg_PER'] = avg_per.item()
         metrics['avg_loss'] = np.mean(metrics['losses'])
 
         return metrics

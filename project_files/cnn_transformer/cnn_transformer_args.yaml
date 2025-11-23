@@ -3,10 +3,11 @@ model:
   n_units: 512 # transformer embedding dimension (d_model)
 
   # transformer config
-  trans_dropout: 0.2 # dropout rate for the TransformerEncoder layers
+  trans_dropout: 0.2 # dropout rate for the Transformer layers
   trainable: true # whether the Transformer layers are trainable
   dim_feedforward: 2048 # dimension of the feedforward network model
   n_layers: 3 # number of TransformerEncoder layers
+  n_decoder_layers: 3 # number of TransformerDecoder layers
   n_heads: 8 # number of heads
   activation: 'gelu'
 
@@ -17,9 +18,25 @@ model:
   conv_residual: [False, True, True]
 
   # prediction
-  pooling: None
-  cls_token: false
   max_len: 5000
+  pad_token_id: 0
+  bos_token_id: 0
+  eos_token_id: 0
+
+tokenizer:
+  enabled: true
+  type: bpe
+  save_path: project_files/cnn_transformer/tokenizers/bpe_tokenizer.json
+  vocab_size: 512
+  min_frequency: 2
+  lowercase: true
+  append_eos_to_targets: true
+  train_on_splits: [train, val]
+  special_tokens:
+    pad: "<pad>"
+    bos: "<bos>"
+    eos: "<eos>"
+    unk: "<unk>"
 
   input_network:
     n_input_layers: 1 # number of input layers per network (one network for each day)
@@ -156,6 +173,12 @@ dataset:
   - 1
   - 1
   - 1
+
+generation:
+  num_beams: 4
+  max_length: 256
+  length_penalty: 1.0
+  early_stopping: false
   - 1
   - 1
   - 1

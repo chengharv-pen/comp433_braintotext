@@ -5,6 +5,7 @@ import h5py
 import numpy as np
 from torch.nn.utils.rnn import pad_sequence
 import math 
+from tokenizers import Tokenizer
 
 class BrainToTextDataset(Dataset):
     '''
@@ -22,7 +23,12 @@ class BrainToTextDataset(Dataset):
             days_per_batch = 1, 
             random_seed = -1,
             must_include_days = None,
-            feature_subset = None
+            feature_subset = None,
+            tokenizer_path = None,
+            pad_token_id = 0,
+            eos_token_id = None,
+            append_eos = False,
+            lowercase_transcriptions = True,
             ): 
         '''
         trial_indicies:  (dict)      - dictionary with day numbers as keys and lists of trial indices as values
@@ -59,6 +65,12 @@ class BrainToTextDataset(Dataset):
         self.n_days = len(trial_indicies.keys())
 
         self.feature_subset = feature_subset
+        self.tokenizer_path = tokenizer_path
+        self._tokenizer = None
+        self.pad_token_id = pad_token_id
+        self.eos_token_id = eos_token_id
+        self.append_eos = append_eos
+        self.lowercase_transcriptions = lowercase_transcriptions
 
         # Calculate total number of trials in the dataset
         for d in trial_indicies:
@@ -88,6 +100,14 @@ class BrainToTextDataset(Dataset):
         else: 
             self.batch_index = self.create_batch_index_test()
             self.n_batches = len(self.batch_index.keys()) # The validation data has a fixed amount of data 
+
+    @property
+    def tokenizer(self):
+        if self.tokenizer_path is None:
+            return None
+        if self._tokenizer is None:
+            self._tokenizer = Tokenizer.from_file(self.tokenizer_path)
+        return self._tokenizer
     
     def __len__(self):
         ''' 
@@ -133,10 +153,11 @@ class BrainToTextDataset(Dataset):
 
                         batch['input_features'].append(input_features)
 
-                        batch['seq_class_ids'].append(torch.from_numpy(g['seq_class_ids'][:]))  # phoneme labels
+                        seq_ids, seq_len = self._get_sequence_ids(g)
+                        batch['seq_class_ids'].append(torch.tensor(seq_ids, dtype=torch.long))  # label ids
                         batch['transcriptions'].append(torch.from_numpy(g['transcription'][:])) # character level transcriptions
                         batch['n_time_steps'].append(g.attrs['n_time_steps']) # number of time steps in the trial - required since we are padding
-                        batch['phone_seq_lens'].append(g.attrs['seq_len']) # number of phonemes in the label - required since we are padding
+                        batch['phone_seq_lens'].append(seq_len) # label length
                         batch['day_indicies'].append(int(d)) # day index of each trial - required for the day specific layers 
                         batch['block_nums'].append(g.attrs['block_num'])
                         batch['trial_nums'].append(g.attrs['trial_num'])
@@ -147,7 +168,7 @@ class BrainToTextDataset(Dataset):
 
         # Pad data to form a cohesive batch
         batch['input_features'] = pad_sequence(batch['input_features'], batch_first = True, padding_value = 0)
-        batch['seq_class_ids'] = pad_sequence(batch['seq_class_ids'], batch_first = True, padding_value = 0)
+        batch['seq_class_ids'] = pad_sequence(batch['seq_class_ids'], batch_first = True, padding_value = self.pad_token_id)
 
         batch['n_time_steps'] = torch.tensor(batch['n_time_steps']) 
         batch['phone_seq_lens'] = torch.tensor(batch['phone_seq_lens'])
@@ -157,6 +178,38 @@ class BrainToTextDataset(Dataset):
         batch['trial_nums'] = torch.tensor(batch['trial_nums'])
 
         return batch
+
+    def _get_sequence_ids(self, group):
+        if self.tokenizer is None:
+            seq_ids = group['seq_class_ids'][:]
+            seq_len = group.attrs['seq_len'] if 'seq_len' in group.attrs else len(seq_ids)
+            return seq_ids.tolist(), int(seq_len)
+
+        transcription_np = group['transcription'][:]
+        text = self._transcription_to_text(transcription_np)
+        if self.lowercase_transcriptions:
+            text = text.lower()
+
+        encoding = self.tokenizer.encode(text)
+        token_ids = list(encoding.ids)
+
+        if self.append_eos and self.eos_token_id is not None:
+            token_ids.append(self.eos_token_id)
+
+        if not token_ids:
+            fallback = self.eos_token_id if self.eos_token_id is not None else self.pad_token_id
+            token_ids = [fallback]
+
+        return token_ids, len(token_ids)
+
+    @staticmethod
+    def _transcription_to_text(raw_transcription) -> str:
+        chars = []
+        for value in raw_transcription:
+            if value == 0:
+                break
+            chars.append(chr(int(value)))
+        return ''.join(chars)
     
 
     def create_batch_index_train(self):
