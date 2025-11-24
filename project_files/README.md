@@ -35,7 +35,7 @@ In `./project_files/<model_type>`, you can run
 python train_model.py
 ```
 
-If this does not work, it should be because the `<model_folder>` exists in trained_models. In this case, modify these arguments in `<model_type>_args.yaml`
+If this does not work, it should be because the `<model_folder>` exists in `trained_models`. In this case, modify these arguments in `<model_type>_args.yaml`
 
 ```
 output_dir: trained_models/<model_folder> # directory to save the trained model and logs
@@ -44,7 +44,7 @@ checkpoint_dir: trained_models/<model_folder>/checkpoint # directory to save che
 
 # Evaluation and Validation
 
-The <a href="https://drive.google.com/drive/folders/1GCUhWd1V7r5I-W7cfLoYWKNOVCWrxW_5">Google Drive</a>'s folders are structured as `<model_type>/<model_folder(s)`
+The <a href="https://drive.google.com/drive/folders/1GCUhWd1V7r5I-W7cfLoYWKNOVCWrxW_5">Google Drive</a>'s folders are structured as `<model_type>/<model_folder(s)>`
 
 You can download a model folder from there, and place it in `./project_files/<model_type>/trained_models/<model_folder>`
 
@@ -59,9 +59,9 @@ cd ../../../../
 sysctl vm.overcommit_memory=1
 redis-server --daemonize yes
 ```
-WARNING: THIS MAY NOT WORK, DEPENDING ON YOUR SYSTEM'S RAM/VRAM.
+WARNING: THE FOLLOWING COMMAND NOT WORK, DEPENDING ON YOUR SYSTEM'S RAM/VRAM.
 
-If there is not enough RAM/VRAM in your system, please modify the `model_name` parameter in the `build_opt()` method, located at `./language_model/language-model-standalone.py`. This parameter is meant to define the model to pull from Hugging Face.
+If there is not enough RAM/VRAM in your system, please modify the `model_name` parameter in the `build_opt()` method, located at `./language_model/language-model-standalone.py` [line 96]. This parameter is meant to define the model to pull from Hugging Face.
 - Facebook's OPT 6.7b requires a GPU with at least ~12.4 GB of VRAM to load for inference
 ```
 python language_model/language-model-standalone.py --lm_path language_model/pretrained_language_models/openwebtext_1gram_lm_sil --do_opt --nbest 100 --acoustic_scale 0.325 --blank_penalty 90 --alpha 0.55 --redis_ip localhost --gpu_number 0 &
