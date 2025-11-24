@@ -62,10 +62,6 @@ class CNNTransformer(nn.Module):
         trans_dropout=0.1,
         input_dropout=0.0,
         activation="gelu",
-
-        # prediction
-        pooling=None,
-        cls_token=False,
         max_len=10000,
     ):
         '''

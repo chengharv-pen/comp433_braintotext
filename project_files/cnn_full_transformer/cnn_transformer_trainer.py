@@ -37,7 +37,6 @@ class BrainToText_Trainer:
         self.model = None
         self.optimizer = None
         self.learning_rate_scheduler = None
-        self.cross_entropy = None
 
         self.best_val_PER = torch.inf  # track best PER for checkpointing
         self.best_val_loss = torch.inf  # track best loss for checkpointing
@@ -128,10 +127,6 @@ class BrainToText_Trainer:
             trans_dropout=self.args['model']['trans_dropout'],
             input_dropout=self.args['model']['input_network']['input_layer_dropout'],
             activation=self.args['model']['activation'],
-
-            # prediction
-            pooling=self.args['model']['pooling'],
-            cls_token=self.args['model']['cls_token'],
             max_len=self.args['model']['max_len'],
         )
 
@@ -248,7 +243,6 @@ class BrainToText_Trainer:
         else:
             raise ValueError(f"Invalid learning rate scheduler type: {self.args['lr_scheduler_type']}")
 
-        self.cross_entropy = torch.nn.CrossEntropyLoss(reduction='mean')
 
         # If a checkpoint is provided, then load from checkpoint
         if self.args['init_from_checkpoint']:
@@ -555,7 +549,8 @@ class BrainToText_Trainer:
                 # We ignore index 0 (PAD/BLANK)
                 # CRITICAL FIX 1: Reshape to (Batch * Time, internal_vocab_size)
                 # CRITICAL FIX 2: Compare against y_true, not labels
-                loss = self.cross_entropy(
+                # Note: We use torch.nn.functional to prevent conflicts with the torchvision F
+                loss = torch.nn.functional.cross_entropy(
                     logits.reshape(-1, self.model.internal_vocab_size),
                     y_true.reshape(-1),
                     ignore_index=PAD_IDX
@@ -748,9 +743,8 @@ class BrainToText_Trainer:
                     tf_logits = self.model(features, day_indicies, tgt=tgt_input)
 
                     # Calculate CrossEntropyLoss
-                    # Note: We use torch.nn.functional (usually imported as F_nn or just inside F if not conflicting)
-                    # Assuming standard torch imports: import torch.nn.functional as F_torch
-                    val_loss = self.cross_entropy(
+                    # Note: We use torch.nn.functional to prevent conflicts with the torchvision F
+                    val_loss = torch.nn.functional.cross_entropy(
                         tf_logits.reshape(-1, self.model.internal_vocab_size),
                         y_true.reshape(-1),
                         ignore_index=PAD_IDX
@@ -834,7 +828,7 @@ class BrainToText_Trainer:
                         # 3. Calc Edit Distance
                         # F here is torchaudio.functional
                         dist = F.edit_distance(decoded_seq_tensor, raw_true)
-                        batch_edit_distance += dist.item()
+                        batch_edit_distance += dist
 
             # Update totals
             day = batch['day_indicies'][0].item()

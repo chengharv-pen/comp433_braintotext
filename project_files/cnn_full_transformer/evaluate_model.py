@@ -75,10 +75,6 @@ model = CNNTransformer(
     trans_dropout=model_args['model']['trans_dropout'],
     input_dropout=model_args['model']['input_network']['input_layer_dropout'],
     activation=model_args['model']['activation'],
-
-    # prediction
-    pooling=model_args['model']['pooling'],
-    cls_token=model_args['model']['cls_token'],
     max_len=model_args['model']['max_len'],
 )
 

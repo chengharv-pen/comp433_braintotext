@@ -9,17 +9,13 @@ model:
   n_layers: 3 # number of TransformerEncoder layers
   n_heads: 8 # number of heads
   activation: 'gelu'
+  max_len: 5000
 
   # conv config
   conv_channels: [128, 256, 256]
   conv_kernel_sizes: [5, 5, 5]
   conv_strides: [2, 2, 2]
   conv_residual: [False, True, True]
-
-  # prediction
-  pooling: None
-  cls_token: false
-  max_len: 5000
 
   input_network:
     n_input_layers: 1 # number of input layers per network (one network for each day)
