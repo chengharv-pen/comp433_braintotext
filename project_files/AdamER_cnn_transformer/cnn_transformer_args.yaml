@@ -1,3 +1,5 @@
+adamer_beta: 0.1 # AdaMER beta learning rate
+
 model:
   n_input_features: 512 # number of input features in the neural data. (2 features per electrode, 256 electrodes)
   n_units: 512 # transformer embedding dimension (d_model)

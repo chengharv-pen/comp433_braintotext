@@ -69,7 +69,8 @@ model = CNNTransformer(
     conv_residual=model_args['model']['conv_residual'],
 
     # transformer config
-    n_layers=model_args['model']['n_layers'],
+    enc_layers=model_args['model']['enc_layers'],
+    dec_layers=model_args['model']['dec_layers'],
     n_heads=model_args['model']['n_heads'],
     dim_feedforward=model_args['model']['dim_feedforward'],
     trans_dropout=model_args['model']['trans_dropout'],

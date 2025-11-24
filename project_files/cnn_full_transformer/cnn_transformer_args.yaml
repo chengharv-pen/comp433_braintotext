@@ -6,10 +6,11 @@ model:
   trans_dropout: 0.2 # dropout rate for the TransformerEncoder layers
   trainable: true # whether the Transformer layers are trainable
   dim_feedforward: 2048 # dimension of the feedforward network model
-  n_layers: 3 # number of TransformerEncoder layers
+  enc_layers: 3 # number of TransformerEncoder layers
+  dec_layers: 1
   n_heads: 8 # number of heads
   activation: 'gelu'
-  max_len: 5000
+  max_len: 5000 # PLEASE DO NOT MODIFY
 
   # conv config
   conv_channels: [128, 256, 256]
@@ -44,19 +45,19 @@ lr_scheduler_type: cosine # type of learning rate scheduler to use
 lr_max: 0.0003 # maximum learning rate for the main model
 lr_min: 0.00005 # minimum learning rate for the main model
 lr_decay_steps: 100000 # number of steps for the learning rate decay
-lr_warmup_steps: 20000 # number of warmup steps for the learning rate scheduler
+lr_warmup_steps: 2000 # number of warmup steps for the learning rate scheduler
 lr_max_day: 0.0002 # maximum learning rate for the day specific input layers
 lr_min_day: 0.00005 # minimum learning rate for the day specific input layers
 lr_decay_steps_day: 100000 # number of steps for the learning rate decay for the day specific input layers
-lr_warmup_steps_day: 5000 # number of warmup steps for the learning rate scheduler for the day specific input layers
+lr_warmup_steps_day: 1000 # number of warmup steps for the learning rate scheduler for the day specific input layers
 
 beta0: 0.9 # beta0 parameter for the Adam optimizer
 beta1: 0.999 # beta1 parameter for the Adam optimizer
 epsilon: 1e-8 # epsilon parameter for the Adam optimizer
-weight_decay: 0.001 # weight decay for the main model
+weight_decay: 0.0001 # weight decay for the main model
 weight_decay_day: 0 # weight decay for the day specific input layers
 seed: 10 # random seed for reproducibility
-grad_norm_clip_value: 10 # gradient norm clipping value
+grad_norm_clip_value: 5 # gradient norm clipping value
 
 batches_per_train_log: 200 # number of batches per training log
 batches_per_val_step: 2000 # number of batches per validation step

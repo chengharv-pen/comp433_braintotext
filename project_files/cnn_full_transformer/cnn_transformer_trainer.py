@@ -121,7 +121,8 @@ class BrainToText_Trainer:
             conv_residual=self.args['model']['conv_residual'],
 
             # transformer config
-            n_layers=self.args['model']['n_layers'],
+            enc_layers=self.args['model']['enc_layers'],
+            dec_layers=self.args['model']['dec_layers'],
             n_heads=self.args['model']['n_heads'],
             dim_feedforward=self.args['model']['dim_feedforward'],
             trans_dropout=self.args['model']['trans_dropout'],
@@ -780,7 +781,7 @@ class BrainToText_Trainer:
                     # --------------------------------
                     generated = torch.full((batch_size, 1), SOS_IDX, device=self.device, dtype=torch.long)
 
-                    # Max gen len: usually 1.5x input or fixed (e.g., 100)
+                    # Max gen len: fixed length
                     for step in range(100):
                         tgt_mask = self.model.generate_square_subsequent_mask(generated.size(1)).to(self.device)
                         tgt_emb = self.model.tgt_embedding(generated)

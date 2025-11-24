@@ -4,7 +4,7 @@ We require that the command `nvidia-smi` works, if using a NVIDIA GPU
 
 1. Clone this repository
 
-2. Assuming that the user is located at project root, put the Dryad dataset files in `./data`, and extract the zip files.
+2. Assuming that the user is located at project root, put the <a href="https://datadryad.org/dataset/doi:10.5061/dryad.dncjsxm85">Dryad data files</a> in `./data`, and extract the zip files.
 
 We provide a Docker container to make it easier to run the code.
 ```
@@ -67,3 +67,7 @@ python evaluate_model.py --model_path trained_models/<model_folder> --data_dir .
 # TO EVALUATE ON TEST SET (KAGGLE SUBMISSION)
 python evaluate_model.py --model_path trained_models/<model_folder> --data_dir ../../data/hdf5_data_final --eval_type test --gpu_number 0
 ```
+
+# Specifics
+
+Metrics were not saved in a JSON for these models

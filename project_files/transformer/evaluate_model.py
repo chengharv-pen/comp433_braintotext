@@ -61,13 +61,13 @@ model = CustomTransformer(
     n_units=model_args['model']['n_units'],
     n_days=len(model_args['dataset']['sessions']),
     n_classes=model_args['dataset']['n_classes'],
-
-    # transformer config
     n_layers=model_args['model']['n_layers'],
     n_heads=model_args['model']['n_heads'],
     dim_feedforward=model_args['model']['dim_feedforward'],
     trans_dropout=model_args['model']['trans_dropout'],
     input_dropout=model_args['model']['input_network']['input_layer_dropout'],
+    patch_size=model_args['model']['patch_size'],
+    patch_stride=model_args['model']['patch_stride'],
     activation=model_args['model']['activation'],
 )
 

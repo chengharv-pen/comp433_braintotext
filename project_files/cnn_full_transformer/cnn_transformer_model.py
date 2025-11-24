@@ -56,7 +56,8 @@ class CNNTransformer(nn.Module):
         conv_residual=(False, True),
 
         # transformer config
-        n_layers=3,
+        enc_layers=3,
+        dec_layers=2,
         n_heads=8,
         dim_feedforward=2048,
         trans_dropout=0.1,
@@ -102,7 +103,7 @@ class CNNTransformer(nn.Module):
         self.input_proj = nn.Linear(self.conv_output_channels, n_units)
 
         # Positional Encoding
-        self.pos_encoding = PositionalEncoding(n_units)
+        self.pos_encoding = PositionalEncoding(n_units, max_len=max_len)
 
         # Transformer Encoder
         encoder_layer = nn.TransformerEncoderLayer(
@@ -113,7 +114,7 @@ class CNNTransformer(nn.Module):
             batch_first=True,
             activation=activation,
         )
-        self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=n_layers)
+        self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=enc_layers)
 
         # INTRODUCING TRANSFORMER DECODER LAYERS
         # WE DO NOT CHANGE n_classes, we just add 2 internal slots
@@ -132,7 +133,7 @@ class CNNTransformer(nn.Module):
             batch_first=True,
             activation=activation
         )
-        self.decoder = nn.TransformerDecoder(decoder_layer, num_layers=n_layers)
+        self.decoder = nn.TransformerDecoder(decoder_layer, num_layers=dec_layers)
 
         # LayerNorm before head
         self.final_ln = nn.LayerNorm(n_units)
@@ -171,9 +172,6 @@ class CNNTransformer(nn.Module):
 
         # Positional encoding
         x = self.pos_encoding(x)
-
-        # Transformer encoder
-        x = self.encoder(x) # [B, T', n_units]
 
         # memory is the encoded representation of the neural data
         memory = self.encoder(x)  # [B, T_down, n_units]

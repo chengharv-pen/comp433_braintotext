@@ -19,6 +19,7 @@ import torchaudio.functional as F # for edit distance
 from omegaconf import OmegaConf
 
 from cnn_transformer_model import CNNTransformer # our transformer model
+from AdamER_CTC_Loss import AdamERCTCLoss
 
 torch.set_float32_matmul_precision('high') # makes float32 matmuls faster on some GPUs
 torch.backends.cudnn.deterministic = True # makes training more reproducible
@@ -229,6 +230,9 @@ class BrainToText_Trainer:
         self.logger.info("Successfully initialized datasets")
 
         # Create optimizer, learning rate scheduler, and loss
+        # Initialize the loss before creating the optimizer
+        self.logger.info("BETA SELF ARGS VALUE: " + str(self.args['adamer_beta']))
+        self.ctc_loss = AdamERCTCLoss(beta=self.args['adamer_beta'])
         self.optimizer = self.create_optimizer()
 
         if self.args['lr_scheduler_type'] == 'linear':
@@ -243,8 +247,6 @@ class BrainToText_Trainer:
 
         else:
             raise ValueError(f"Invalid learning rate scheduler type: {self.args['lr_scheduler_type']}")
-
-        self.ctc_loss = torch.nn.CTCLoss(blank=0, reduction='none', zero_infinity=False)
 
         # If a checkpoint is provided, then load from checkpoint
         if self.args['init_from_checkpoint']:
@@ -289,12 +291,14 @@ class BrainToText_Trainer:
                 {'params': bias_params, 'weight_decay': 0, 'group_type': 'bias'},
                 {'params': day_params, 'lr': self.args['lr_max_day'], 'weight_decay': self.args['weight_decay_day'],
                  'group_type': 'day_layer'},
-                {'params': other_params, 'group_type': 'other'}
+                {'params': other_params, 'group_type': 'other'},
+                {'params': [self.ctc_loss.beta], 'lr': self.args['adamer_beta'], 'weight_decay': 0.0}
             ]
         else:
             param_groups = [
                 {'params': bias_params, 'weight_decay': 0, 'group_type': 'bias'},
-                {'params': other_params, 'group_type': 'other'}
+                {'params': other_params, 'group_type': 'other'},
+                {'params': [self.ctc_loss.beta], 'lr': self.args['adamer_beta'], 'weight_decay': 0.0}
             ]
 
         optim = torch.optim.AdamW(
