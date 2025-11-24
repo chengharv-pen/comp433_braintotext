@@ -48,9 +48,6 @@ The <a href="https://drive.google.com/drive/folders/1GCUhWd1V7r5I-W7cfLoYWKNOVCW
 
 You can download a model folder from there, and place it in `./project_files/<model_type>/trained_models/<model_folder>`
 
-If there is not enough RAM/VRAM in your system, please modify the `model_name` parameter in the `build_opt()` method, located at `./language_model/language-model-standalone.py`. This parameter is meant to define the model to pull from Hugging Face.
-- Facebook's OPT 6.7b requires a GPU with at least ~12.4 GB of VRAM to load for inference
-
 For this project, we restricted ourselves to only using the 1-gram decoder, since we do not have enough RAM to run the 3-gram (~60GB RAM) and the 5-gram (~300GB RAM) decoders.
 
 ```
@@ -61,16 +58,24 @@ python setup.py install
 cd ../../../../
 sysctl vm.overcommit_memory=1
 redis-server --daemonize yes
+```
+WARNING: THIS MAY NOT WORK, DEPENDING ON YOUR SYSTEM'S RAM/VRAM.
 
-# WARNING: THIS MAY OR MAY NOT WORK, DEPENDING ON YOUR SYSTEM'S RAM/VRAM
+If there is not enough RAM/VRAM in your system, please modify the `model_name` parameter in the `build_opt()` method, located at `./language_model/language-model-standalone.py`. This parameter is meant to define the model to pull from Hugging Face.
+- Facebook's OPT 6.7b requires a GPU with at least ~12.4 GB of VRAM to load for inference
+```
 python language_model/language-model-standalone.py --lm_path language_model/pretrained_language_models/openwebtext_1gram_lm_sil --do_opt --nbest 100 --acoustic_scale 0.325 --blank_penalty 90 --alpha 0.55 --redis_ip localhost --gpu_number 0 &
-
+```
+Before running evaluation
+```
 cd project_files/<model_type>
 conda activate b2txt25
-
-# TO EVALUATE ON VALIDATION SET
+```
+Evaluating on the validation set, to get the Word Error Rate metric
+```
 python evaluate_model.py --model_path trained_models/<model_folder> --data_dir ../../data/hdf5_data_final --eval_type val --gpu_number 0
-
-# TO EVALUATE ON TEST SET (KAGGLE SUBMISSION)
+```
+Evaluating on the test set (Kaggle submissions)
+```
 python evaluate_model.py --model_path trained_models/<model_folder> --data_dir ../../data/hdf5_data_final --eval_type test --gpu_number 0
 ```
