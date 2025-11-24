@@ -62,10 +62,6 @@ class CNNTransformer(nn.Module):
         trans_dropout=0.1,
         input_dropout=0.0,
         activation="gelu",
-
-        # prediction
-        pooling=None,
-        cls_token=False,
         max_len=10000,
     ):
         '''
@@ -102,12 +98,6 @@ class CNNTransformer(nn.Module):
         self.conv_frontend = nn.Sequential(*conv_blocks)
         self.conv_output_channels = in_ch  # final channel size
 
-        # optional CLS token
-        self.cls_token = None
-        self.use_cls = cls_token
-        if cls_token:
-            self.cls_token = nn.Parameter(torch.randn(1, 1, n_units))  # added after projection
-
         # Project conv features to transformer d_model
         self.input_proj = nn.Linear(self.conv_output_channels, n_units)
 
@@ -127,14 +117,7 @@ class CNNTransformer(nn.Module):
 
         # LayerNorm before head
         self.final_ln = nn.LayerNorm(n_units)
-
-        # Prediction head
-        # If pooling is None -> time-distributed out (CTC). Else pooled classification head.
-        self.pooling = pooling
-        if pooling is None:
-            self.out = nn.Linear(n_units, n_classes)  # time-distributed
-        else:
-            self.out = nn.Linear(n_units, n_classes)  # applied after pooling (or on CLS token)
+        self.out = nn.Linear(n_units, n_classes)
 
         # Explicit initialization call
         self._init_weights()
@@ -162,12 +145,6 @@ class CNNTransformer(nn.Module):
         # Project to transformer dim
         x = self.input_proj(x)  # [B, T_down, n_units]
         x = F.gelu(x)
-
-        # Optionally prepend cls token
-        if self.use_cls:
-            b = x.size(0)
-            cls_token = self.cls_token.expand(b, -1, -1)  # [B,1,n_units]
-            x = torch.cat([cls_token, x], dim=1)  # [B, T+1, n_units]
 
         # Positional encoding
         x = self.pos_encoding(x)

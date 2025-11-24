@@ -3,7 +3,7 @@ model:
   n_units: 512 # transformer embedding dimension (d_model)
   trans_dropout: 0.2 # dropout rate for the TransformerEncoder layers
   trainable: true # whether the Transformer layers are trainable
-  dim_feedforward: 3072 # dimension of the feedforward network model
+  dim_feedforward: 2048 # dimension of the feedforward network model
   n_layers: 3 # number of TransformerEncoder layers
   n_heads: 8 # number of heads
   patch_size: 14 # size of the input patches (14 time steps)

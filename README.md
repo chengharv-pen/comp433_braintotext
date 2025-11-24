@@ -2,8 +2,6 @@
 
 Original README.md follows below
 
----
-
 # An Accurate and Rapidly Calibrating Speech Neuroprosthesis
 *The New England Journal of Medicine* (2024)
 

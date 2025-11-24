@@ -499,6 +499,7 @@ class BrainToTextDecoder_Trainer:
 
         # create vars to track performance
         train_losses = []
+        grad_norms = []
         val_losses = []
         val_PERs = []
         val_results = []
@@ -566,6 +567,7 @@ class BrainToTextDecoder_Trainer:
             # Save training metrics 
             train_step_duration = time.time() - start_time
             train_losses.append(loss.detach().item())
+            grad_norms.append(grad_norm)
 
             # Incrementally log training progress
             if i % self.args['batches_per_train_log'] == 0:
@@ -651,6 +653,7 @@ class BrainToTextDecoder_Trainer:
 
         train_stats = {}
         train_stats['train_losses'] = train_losses
+        train_stats['grad_norms'] = grad_norms
         train_stats['val_losses'] = val_losses 
         train_stats['val_PERs'] = val_PERs
         train_stats['val_metrics'] = val_results
