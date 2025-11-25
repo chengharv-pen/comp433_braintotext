@@ -1,0 +1,222 @@
+2025-11-25 11:27:15,393: Using device: cuda:0
+2025-11-25 11:27:15,440: Using torch.compile
+2025-11-25 11:27:15,774: Initialized Transformer model with Beam Search support
+2025-11-25 11:27:15,774: OptimizedModule(
+  (_orig_mod): CNNTransformerForGeneration(
+    (day_layer_activation): Softsign()
+    (day_weights): ParameterList(
+        (0): Parameter containing: [torch.float32 of size 512x512]
+        (1): Parameter containing: [torch.float32 of size 512x512]
+        (2): Parameter containing: [torch.float32 of size 512x512]
+        (3): Parameter containing: [torch.float32 of size 512x512]
+        (4): Parameter containing: [torch.float32 of size 512x512]
+        (5): Parameter containing: [torch.float32 of size 512x512]
+        (6): Parameter containing: [torch.float32 of size 512x512]
+        (7): Parameter containing: [torch.float32 of size 512x512]
+        (8): Parameter containing: [torch.float32 of size 512x512]
+        (9): Parameter containing: [torch.float32 of size 512x512]
+        (10): Parameter containing: [torch.float32 of size 512x512]
+        (11): Parameter containing: [torch.float32 of size 512x512]
+        (12): Parameter containing: [torch.float32 of size 512x512]
+        (13): Parameter containing: [torch.float32 of size 512x512]
+        (14): Parameter containing: [torch.float32 of size 512x512]
+        (15): Parameter containing: [torch.float32 of size 512x512]
+        (16): Parameter containing: [torch.float32 of size 512x512]
+        (17): Parameter containing: [torch.float32 of size 512x512]
+        (18): Parameter containing: [torch.float32 of size 512x512]
+        (19): Parameter containing: [torch.float32 of size 512x512]
+        (20): Parameter containing: [torch.float32 of size 512x512]
+        (21): Parameter containing: [torch.float32 of size 512x512]
+        (22): Parameter containing: [torch.float32 of size 512x512]
+        (23): Parameter containing: [torch.float32 of size 512x512]
+        (24): Parameter containing: [torch.float32 of size 512x512]
+        (25): Parameter containing: [torch.float32 of size 512x512]
+        (26): Parameter containing: [torch.float32 of size 512x512]
+        (27): Parameter containing: [torch.float32 of size 512x512]
+        (28): Parameter containing: [torch.float32 of size 512x512]
+        (29): Parameter containing: [torch.float32 of size 512x512]
+        (30): Parameter containing: [torch.float32 of size 512x512]
+        (31): Parameter containing: [torch.float32 of size 512x512]
+        (32): Parameter containing: [torch.float32 of size 512x512]
+        (33): Parameter containing: [torch.float32 of size 512x512]
+        (34): Parameter containing: [torch.float32 of size 512x512]
+        (35): Parameter containing: [torch.float32 of size 512x512]
+        (36): Parameter containing: [torch.float32 of size 512x512]
+        (37): Parameter containing: [torch.float32 of size 512x512]
+        (38): Parameter containing: [torch.float32 of size 512x512]
+        (39): Parameter containing: [torch.float32 of size 512x512]
+        (40): Parameter containing: [torch.float32 of size 512x512]
+        (41): Parameter containing: [torch.float32 of size 512x512]
+        (42): Parameter containing: [torch.float32 of size 512x512]
+        (43): Parameter containing: [torch.float32 of size 512x512]
+        (44): Parameter containing: [torch.float32 of size 512x512]
+    )
+    (day_biases): ParameterList(
+        (0): Parameter containing: [torch.float32 of size 1x512]
+        (1): Parameter containing: [torch.float32 of size 1x512]
+        (2): Parameter containing: [torch.float32 of size 1x512]
+        (3): Parameter containing: [torch.float32 of size 1x512]
+        (4): Parameter containing: [torch.float32 of size 1x512]
+        (5): Parameter containing: [torch.float32 of size 1x512]
+        (6): Parameter containing: [torch.float32 of size 1x512]
+        (7): Parameter containing: [torch.float32 of size 1x512]
+        (8): Parameter containing: [torch.float32 of size 1x512]
+        (9): Parameter containing: [torch.float32 of size 1x512]
+        (10): Parameter containing: [torch.float32 of size 1x512]
+        (11): Parameter containing: [torch.float32 of size 1x512]
+        (12): Parameter containing: [torch.float32 of size 1x512]
+        (13): Parameter containing: [torch.float32 of size 1x512]
+        (14): Parameter containing: [torch.float32 of size 1x512]
+        (15): Parameter containing: [torch.float32 of size 1x512]
+        (16): Parameter containing: [torch.float32 of size 1x512]
+        (17): Parameter containing: [torch.float32 of size 1x512]
+        (18): Parameter containing: [torch.float32 of size 1x512]
+        (19): Parameter containing: [torch.float32 of size 1x512]
+        (20): Parameter containing: [torch.float32 of size 1x512]
+        (21): Parameter containing: [torch.float32 of size 1x512]
+        (22): Parameter containing: [torch.float32 of size 1x512]
+        (23): Parameter containing: [torch.float32 of size 1x512]
+        (24): Parameter containing: [torch.float32 of size 1x512]
+        (25): Parameter containing: [torch.float32 of size 1x512]
+        (26): Parameter containing: [torch.float32 of size 1x512]
+        (27): Parameter containing: [torch.float32 of size 1x512]
+        (28): Parameter containing: [torch.float32 of size 1x512]
+        (29): Parameter containing: [torch.float32 of size 1x512]
+        (30): Parameter containing: [torch.float32 of size 1x512]
+        (31): Parameter containing: [torch.float32 of size 1x512]
+        (32): Parameter containing: [torch.float32 of size 1x512]
+        (33): Parameter containing: [torch.float32 of size 1x512]
+        (34): Parameter containing: [torch.float32 of size 1x512]
+        (35): Parameter containing: [torch.float32 of size 1x512]
+        (36): Parameter containing: [torch.float32 of size 1x512]
+        (37): Parameter containing: [torch.float32 of size 1x512]
+        (38): Parameter containing: [torch.float32 of size 1x512]
+        (39): Parameter containing: [torch.float32 of size 1x512]
+        (40): Parameter containing: [torch.float32 of size 1x512]
+        (41): Parameter containing: [torch.float32 of size 1x512]
+        (42): Parameter containing: [torch.float32 of size 1x512]
+        (43): Parameter containing: [torch.float32 of size 1x512]
+        (44): Parameter containing: [torch.float32 of size 1x512]
+    )
+    (day_layer_dropout): Dropout(p=0.2, inplace=False)
+    (conv_frontend): Sequential(
+      (0): ConvBlock1D(
+        (conv): Conv1d(512, 128, kernel_size=(5,), stride=(2,), padding=(2,))
+        (bn): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (activation): ReLU()
+      )
+      (1): ConvBlock1D(
+        (conv): Conv1d(128, 256, kernel_size=(5,), stride=(2,), padding=(2,))
+        (bn): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (activation): ReLU()
+      )
+      (2): ConvBlock1D(
+        (conv): Conv1d(256, 256, kernel_size=(5,), stride=(1,), padding=(2,))
+        (bn): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (activation): ReLU()
+      )
+    )
+    (input_proj): Linear(in_features=256, out_features=512, bias=True)
+    (pos_encoding): PositionalEncoding()
+    (encoder): TransformerEncoder(
+      (layers): ModuleList(
+        (0-2): 3 x TransformerEncoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+          )
+          (linear1): Linear(in_features=512, out_features=2048, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (linear2): Linear(in_features=2048, out_features=512, bias=True)
+          (norm1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (norm2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (dropout1): Dropout(p=0.2, inplace=False)
+          (dropout2): Dropout(p=0.2, inplace=False)
+        )
+      )
+    )
+    (tgt_embedding): Embedding(43, 512)
+    (decoder): TransformerDecoder(
+      (layers): ModuleList(
+        (0): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+          )
+          (multihead_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+          )
+          (linear1): Linear(in_features=512, out_features=2048, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (linear2): Linear(in_features=2048, out_features=512, bias=True)
+          (norm1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (norm2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (norm3): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (dropout1): Dropout(p=0.2, inplace=False)
+          (dropout2): Dropout(p=0.2, inplace=False)
+          (dropout3): Dropout(p=0.2, inplace=False)
+        )
+      )
+    )
+    (final_ln): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+    (out): Linear(in_features=512, out_features=43, bias=True)
+  )
+)
+2025-11-25 11:27:15,774: Model has 26,478,507 parameters
+2025-11-25 11:27:15,775: Model has 11,819,520 day-specific parameters | 44.64% of total parameters
+2025-11-25 11:27:19,715: Successfully initialized datasets
+2025-11-25 11:27:30,832: Train batch 0: loss: 4.62 grad norm: 15.88 time: 9.492
+2025-11-25 11:27:30,832: Running test after training batch: 0
+2025-11-25 11:30:05,198: Val batch 0: PER (greedy): 3.2412 PER (beam): 3.2347 Cross Entropy Loss (avg): 4.7534 time: 154.366
+2025-11-25 11:30:05,199: t15.2023.08.13 val PER (greedy): 3.4106 | PER (beam): 3.3981
+2025-11-25 11:30:05,199: t15.2023.08.18 val PER (greedy): 3.8642 | PER (beam): 3.8391
+2025-11-25 11:30:05,199: t15.2023.08.20 val PER (greedy): 3.5878 | PER (beam): 3.5735
+2025-11-25 11:30:05,199: t15.2023.08.25 val PER (greedy): 3.5467 | PER (beam): 3.5196
+2025-11-25 11:30:05,199: t15.2023.08.27 val PER (greedy): 3.7814 | PER (beam): 3.7605
+2025-11-25 11:30:05,199: t15.2023.09.01 val PER (greedy): 3.7646 | PER (beam): 3.7297
+2025-11-25 11:30:05,199: t15.2023.09.03 val PER (greedy): 3.8171 | PER (beam): 3.7886
+2025-11-25 11:30:05,199: t15.2023.09.24 val PER (greedy): 3.9939 | PER (beam): 4.0000
+2025-11-25 11:30:05,199: t15.2023.09.29 val PER (greedy): 2.8928 | PER (beam): 2.8807
+2025-11-25 11:30:05,199: t15.2023.10.01 val PER (greedy): 2.7312 | PER (beam): 2.7332
+2025-11-25 11:30:05,199: t15.2023.10.06 val PER (greedy): 3.6523 | PER (beam): 3.6663
+2025-11-25 11:30:05,199: t15.2023.10.08 val PER (greedy): 2.1543 | PER (beam): 2.1488
+2025-11-25 11:30:05,199: t15.2023.10.13 val PER (greedy): 3.1901 | PER (beam): 3.1924
+2025-11-25 11:30:05,199: t15.2023.10.15 val PER (greedy): 2.7317 | PER (beam): 2.7172
+2025-11-25 11:30:05,199: t15.2023.10.20 val PER (greedy): 2.8356 | PER (beam): 2.8188
+2025-11-25 11:30:05,199: t15.2023.10.22 val PER (greedy): 3.4610 | PER (beam): 3.4633
+2025-11-25 11:30:05,199: t15.2023.11.03 val PER (greedy): 3.2144 | PER (beam): 3.2049
+2025-11-25 11:30:05,199: t15.2023.11.04 val PER (greedy): 4.8123 | PER (beam): 4.7747
+2025-11-25 11:30:05,199: t15.2023.11.17 val PER (greedy): 3.6563 | PER (beam): 3.6547
+2025-11-25 11:30:05,199: t15.2023.11.19 val PER (greedy): 3.7465 | PER (beam): 3.7585
+2025-11-25 11:30:05,199: t15.2023.11.26 val PER (greedy): 3.0087 | PER (beam): 2.9920
+2025-11-25 11:30:05,199: t15.2023.12.03 val PER (greedy): 3.3655 | PER (beam): 3.3676
+2025-11-25 11:30:05,199: t15.2023.12.08 val PER (greedy): 3.1205 | PER (beam): 3.1185
+2025-11-25 11:30:05,199: t15.2023.12.10 val PER (greedy): 3.0749 | PER (beam): 3.0815
+2025-11-25 11:30:05,199: t15.2023.12.17 val PER (greedy): 2.9106 | PER (beam): 2.9127
+2025-11-25 11:30:05,199: t15.2023.12.29 val PER (greedy): 3.2244 | PER (beam): 3.2286
+2025-11-25 11:30:05,199: t15.2024.02.25 val PER (greedy): 3.0211 | PER (beam): 3.0183
+2025-11-25 11:30:05,199: t15.2024.03.08 val PER (greedy): 3.2304 | PER (beam): 3.2191
+2025-11-25 11:30:05,199: t15.2024.03.15 val PER (greedy): 2.8286 | PER (beam): 2.8243
+2025-11-25 11:30:05,199: t15.2024.03.17 val PER (greedy): 3.1179 | PER (beam): 3.1206
+2025-11-25 11:30:05,199: t15.2024.05.10 val PER (greedy): 3.5022 | PER (beam): 3.5141
+2025-11-25 11:30:05,199: t15.2024.06.14 val PER (greedy): 3.6924 | PER (beam): 3.6987
+2025-11-25 11:30:05,199: t15.2024.07.19 val PER (greedy): 2.9750 | PER (beam): 2.9750
+2025-11-25 11:30:05,199: t15.2024.07.21 val PER (greedy): 2.9834 | PER (beam): 2.9800
+2025-11-25 11:30:05,199: t15.2024.07.28 val PER (greedy): 3.3346 | PER (beam): 3.3279
+2025-11-25 11:30:05,199: t15.2025.01.10 val PER (greedy): 2.9697 | PER (beam): 2.9669
+2025-11-25 11:30:05,199: t15.2025.01.12 val PER (greedy): 3.4211 | PER (beam): 3.4042
+2025-11-25 11:30:05,199: t15.2025.03.14 val PER (greedy): 3.3269 | PER (beam): 3.3225
+2025-11-25 11:30:05,199: t15.2025.03.16 val PER (greedy): 2.9476 | PER (beam): 2.9450
+2025-11-25 11:30:05,199: t15.2025.03.30 val PER (greedy): 3.2736 | PER (beam): 3.2644
+2025-11-25 11:30:05,199: t15.2025.04.13 val PER (greedy): 3.3438 | PER (beam): 3.3424
+2025-11-25 11:30:05,203: New best test PER (beam) inf --> 3.2347
+2025-11-25 11:30:05,203: Checkpointing model
+2025-11-25 11:30:05,299: Saved model to checkpoint: trained_models/cnn_transformer_beam/checkpoint/best_checkpoint
+2025-11-25 11:31:00,162: Train batch 200: loss: 2.97 grad norm: 1.80 time: 0.177
+2025-11-25 11:31:44,785: Train batch 400: loss: 2.48 grad norm: 3.74 time: 0.228
+2025-11-25 11:32:28,525: Train batch 600: loss: 2.25 grad norm: 2.81 time: 0.223
+2025-11-25 11:33:12,883: Train batch 800: loss: 1.85 grad norm: 2.15 time: 0.235
+2025-11-25 11:34:00,533: Train batch 1000: loss: 1.39 grad norm: 4.22 time: 0.225
+2025-11-25 11:34:46,677: Train batch 1200: loss: 0.86 grad norm: 2.81 time: 0.221
+2025-11-25 11:35:31,967: Train batch 1400: loss: 0.71 grad norm: 2.07 time: 0.210
+2025-11-25 11:36:16,278: Train batch 1600: loss: 0.71 grad norm: 2.34 time: 0.259
+2025-11-25 11:37:02,978: Train batch 1800: loss: 0.43 grad norm: 2.40 time: 0.260
+Error loading trial 59 from session ../../data/hdf5_data_final/t15.2024.02.25/data_train.hdf5: Can't synchronously read data (bad coordinate offset)
