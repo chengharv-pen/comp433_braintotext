@@ -346,7 +346,7 @@ class BrainToText_Trainer:
             # After cosine decay is complete, maintain min_lr_ratio
             return min_lr_ratio
 
-        if len(optim.param_groups) == 3:
+        if len(optim.param_groups) == 4:
             lr_lambdas = [
                 lambda step: lr_lambda(
                     step,
@@ -365,7 +365,7 @@ class BrainToText_Trainer:
                     lr_decay_steps,
                     lr_warmup_steps),  # rest of model weights
             ]
-        elif len(optim.param_groups) == 2:
+        elif len(optim.param_groups) == 3:
             lr_lambdas = [
                 lambda step: lr_lambda(
                     step,
