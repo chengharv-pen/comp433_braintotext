@@ -364,6 +364,7 @@ class BrainToText_Trainer:
                     lr_min / lr_max,
                     lr_decay_steps,
                     lr_warmup_steps),  # rest of model weights
+                lambda step: lr_lambda(step, lr_min / lr_max, lr_decay_steps, lr_warmup_steps),  # beta
             ]
         elif len(optim.param_groups) == 3:
             lr_lambdas = [
@@ -377,6 +378,7 @@ class BrainToText_Trainer:
                     lr_min / lr_max,
                     lr_decay_steps,
                     lr_warmup_steps),  # rest of model weights
+                lambda step: lr_lambda(step, lr_min / lr_max, lr_decay_steps, lr_warmup_steps),  # beta
             ]
         else:
             raise ValueError(f"Invalid number of param groups in optimizer: {len(optim.param_groups)}")
