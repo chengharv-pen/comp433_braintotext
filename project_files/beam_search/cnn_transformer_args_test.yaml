@@ -1,0 +1,112 @@
+model:
+  n_input_features: 512
+  n_units: 256 # smaller for quick test
+
+  # transformer config
+  trans_dropout: 0.2
+  trainable: true
+  dim_feedforward: 512 # smaller for quick test
+  enc_layers: 2 # fewer layers for quick test
+  dec_layers: 1
+  n_heads: 4 # fewer heads for quick test
+  activation: 'gelu'
+  max_len: 5000
+
+  # conv config
+  conv_channels: [64, 128]
+  conv_kernel_sizes: [5, 5]
+  conv_strides: [2, 2]
+  conv_residual: [False, True]
+
+  input_network:
+    n_input_layers: 1
+    input_layer_sizes:
+    - 512
+    input_trainable: true
+    input_layer_dropout: 0.2
+
+gpu_number: '0'
+mode: train
+use_amp: true
+
+output_dir: trained_models/cnn_transformer_beam_test
+checkpoint_dir: trained_models/cnn_transformer_beam_test/checkpoint
+init_from_checkpoint: false
+init_checkpoint_path: None
+save_best_checkpoint: true
+save_all_val_steps: false
+save_final_model: false
+save_val_metrics: true
+early_stopping: false
+early_stopping_val_steps: 20
+
+num_training_batches: 50 # very small for quick test
+lr_scheduler_type: cosine
+lr_max: 0.00045
+lr_min: 0.000075
+lr_decay_steps: 50
+lr_warmup_steps: 5
+lr_max_day: 0.0003
+lr_min_day: 0.000075
+lr_decay_steps_day: 50
+lr_warmup_steps_day: 5
+
+beta0: 0.9
+beta1: 0.999
+epsilon: 1e-8
+weight_decay: 0.0001
+weight_decay_day: 0
+seed: 10
+grad_norm_clip_value: 1.5
+
+batches_per_train_log: 10 # more frequent logging for test
+batches_per_val_step: 25 # run validation twice during test
+
+batches_per_save: 0
+log_individual_day_val_PER: true
+log_val_skip_logs: false
+save_val_logits: false
+save_val_data: false
+
+# Beam search specific parameters
+beam_search:
+  num_beams: 3 # fewer beams for quick test
+  length_penalty: 1.0
+  max_decode_length: 50 # shorter for quick test
+
+dataset:
+  data_transforms:
+    white_noise_std: 1.0
+    constant_offset_std: 0.2
+    random_walk_std: 0.0
+    random_walk_axis: -1
+    static_gain_std: 0.0
+    random_cut: 3
+    smooth_kernel_size: 100
+    smooth_data: true
+    smooth_kernel_std: 2
+
+  neural_dim: 512
+  batch_size: 32 # smaller batch for quick test
+  n_classes: 41
+  max_seq_elements: 500
+  days_per_batch: 2 # fewer days for quick test
+  seed: 1
+  num_dataloader_workers: 2
+  loader_shuffle: false
+  must_include_days: null
+  test_percentage: 0.1
+  feature_subset: null
+
+  dataset_dir: ../../data/hdf5_data_final
+  bad_trials_dict: null
+  sessions: # use only 4 sessions for quick test
+  - t15.2023.08.11
+  - t15.2023.08.13
+  - t15.2023.08.18
+  - t15.2023.08.20
+  dataset_probability_val:
+  - 0 # no val from first day
+  - 1
+  - 1
+  - 1
