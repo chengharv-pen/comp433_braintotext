@@ -48,6 +48,8 @@ The <a href="https://drive.google.com/drive/folders/1GCUhWd1V7r5I-W7cfLoYWKNOVCW
 
 You can download a model folder from there, and place it in `./project_files/<model_type>/trained_models/<model_folder>`
 
+Specifically for `<model_folder>`, you need to modify a file name since Google Drive downloads it as a zip. In `<model_folder>/checkpoint/`, rename `best_checkpoint.zip` to `best_checkpoint`.
+
 For this project, we restricted ourselves to only using the 1-gram decoder, since we do not have enough RAM to run the 3-gram (~60GB RAM) and the 5-gram (~300GB RAM) decoders.
 
 ```
