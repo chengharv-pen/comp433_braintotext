@@ -109,15 +109,21 @@ for session in model_args['dataset']['sessions']:
 print(f'Total number of {eval_type} trials: {total_test_trials}')
 print()
 
+# Special token IDs
+SOS_IDX = 41
+EOS_IDX = 42
+PAD_IDX = 0
 
-# put neural data through the pretrained model to get phoneme predictions (logits)
+# put neural data through the pretrained model to get phoneme predictions
 with tqdm(total=total_test_trials, desc='Predicting phoneme sequences', unit='trial') as pbar:
     for session, data in test_data.items():
 
-        data['logits'] = []
+        # they're not here anymore
+        # data['logits'] = []
+
         data['pred_seq'] = []
         input_layer = model_args['dataset']['sessions'].index(session)
-        
+
         for trial in range(len(data['neural_features'])):
             # get neural input for the trial
             neural_input = data['neural_features'][trial]
@@ -128,28 +134,51 @@ with tqdm(total=total_test_trials, desc='Predicting phoneme sequences', unit='tr
             # convert to torch tensor
             neural_input = torch.tensor(neural_input, device=device, dtype=torch.bfloat16)
 
-            # run decoding step
-            logits = runSingleDecodingStep(neural_input, input_layer, model, model_args, device)
-            data['logits'].append(logits)
+            # smooth the data
+            with torch.autocast(device_type="cuda", enabled=model_args['use_amp'], dtype=torch.bfloat16):
+                neural_input = gauss_smooth(
+                    inputs=neural_input,
+                    device=device,
+                    smooth_kernel_std=model_args['dataset']['data_transforms']['smooth_kernel_std'],
+                    smooth_kernel_size=model_args['dataset']['data_transforms']['smooth_kernel_size'],
+                    padding='valid',
+                )
+
+            with torch.no_grad():
+                with torch.autocast(device_type="cuda", enabled=model_args['use_amp'], dtype=torch.bfloat16):
+                    # Encode neural data to memory
+                    memory = model.encode(neural_input, torch.tensor([input_layer], device=device))
+
+                    # Greedy decoding
+                    generated_greedy = model.greedy_decode(memory, max_length=100)
+                    generated_beam = generated_greedy
+
+            # Process greedy sequence
+            raw_pred_greedy = generated_greedy[0][1:]  # Remove SOS
+            pred_seq_greedy = []
+            for token in raw_pred_greedy:
+                if token == EOS_IDX: break
+                if token == PAD_IDX: continue
+                pred_seq_greedy.append(token.item())
+
+            # Process beam search sequence
+            raw_pred_beam = generated_beam[0][1:]  # Remove SOS
+            pred_seq_beam = []
+            for token in raw_pred_beam:
+                if token == EOS_IDX: break
+                if token == PAD_IDX: continue
+                pred_seq_beam.append(token.item())
+
+            data['pred_seq'].append(pred_seq_greedy)
 
             pbar.update(1)
 pbar.close()
 
-
-# convert logits to phoneme sequences and print them out
+# convert predictions to phoneme sequences and print them out
 for session, data in test_data.items():
-    data['pred_seq'] = []
-    for trial in range(len(data['logits'])):
-        logits = data['logits'][trial][0]
-        pred_seq = np.argmax(logits, axis=-1)
-        # remove blanks (0)
-        pred_seq = [int(p) for p in pred_seq if p != 0]
-        # remove consecutive duplicates
-        pred_seq = [pred_seq[i] for i in range(len(pred_seq)) if i == 0 or pred_seq[i] != pred_seq[i-1]]
-        # convert to phonemes
-        pred_seq = [LOGIT_TO_PHONEME[p] for p in pred_seq]
-        # add to data
-        data['pred_seq'].append(pred_seq)
+    for trial in range(len(data['pred_seq'])):
+        # Convert to phonemes
+        pred_seq_greedy = [LOGIT_TO_PHONEME[p] for p in data['pred_seq'][trial]]
 
         # print out the predicted sequences
         block_num = data['block_num'][trial]
@@ -160,126 +189,31 @@ for session, data in test_data.items():
             true_seq = data['seq_class_ids'][trial][0:data['seq_len'][trial]]
             true_seq = [LOGIT_TO_PHONEME[p] for p in true_seq]
 
-            print(f'Sentence label:      {sentence_label}')
-            print(f'True sequence:       {" ".join(true_seq)}')
-        print(f'Predicted Sequence:  {" ".join(pred_seq)}')
+            print(f'Sentence label:          {sentence_label}')
+            print(f'True sequence:           {" ".join(true_seq)}')
+        print(f'Predicted (greedy):      {" ".join(pred_seq_greedy)}')
         print()
 
-
-# language model inference via redis
-# make sure that the standalone language model is running on the localhost redis ip
-# see README.md for instructions on how to run the language model
-r = redis.Redis(host='localhost', port=6379, db=0)
-r.flushall()  # clear all streams in redis
-
-# define redis streams for the remote language model
-remote_lm_input_stream = 'remote_lm_input'
-remote_lm_output_partial_stream = 'remote_lm_output_partial'
-remote_lm_output_final_stream = 'remote_lm_output_final'
-
-# set timestamps for last entries seen in the redis streams
-remote_lm_output_partial_lastEntrySeen = get_current_redis_time_ms(r)
-remote_lm_output_final_lastEntrySeen = get_current_redis_time_ms(r)
-remote_lm_done_resetting_lastEntrySeen = get_current_redis_time_ms(r)
-remote_lm_done_finalizing_lastEntrySeen = get_current_redis_time_ms(r)
-remote_lm_done_updating_lastEntrySeen = get_current_redis_time_ms(r)
-
-lm_results = {
-    'session': [],
-    'block': [],
-    'trial': [],
-    'true_sentence': [],
-    'pred_sentence': [],
-}
-
-# loop through all trials and put logits into the remote language model to get text predictions
-# note: this takes ~15-20 minutes to run on the entire test split with the 5-gram LM + OPT rescoring (RTX 4090)
-with tqdm(total=total_test_trials, desc='Running remote language model', unit='trial') as pbar:
-    for session in test_data.keys():
-        for trial in range(len(test_data[session]['logits'])):
-            # get trial logits and rearrange them for the LM
-            logits = rearrange_speech_logits_pt(test_data[session]['logits'][trial])[0]
-
-            # reset language model
-            remote_lm_done_resetting_lastEntrySeen = reset_remote_language_model(r, remote_lm_done_resetting_lastEntrySeen)
-            
-            '''
-            # update language model parameters
-            remote_lm_done_updating_lastEntrySeen = update_remote_lm_params(
-                r,
-                remote_lm_done_updating_lastEntrySeen,
-                acoustic_scale=0.35,
-                blank_penalty=90.0,
-                alpha=0.55,
-            )
-            '''
-
-            # put logits into LM
-            remote_lm_output_partial_lastEntrySeen, decoded = send_logits_to_remote_lm(
-                r,
-                remote_lm_input_stream,
-                remote_lm_output_partial_stream,
-                remote_lm_output_partial_lastEntrySeen,
-                logits,
-            )
-
-            # finalize remote LM
-            remote_lm_output_final_lastEntrySeen, lm_out = finalize_remote_lm(
-                r,
-                remote_lm_output_final_stream,
-                remote_lm_output_final_lastEntrySeen,
-            )
-
-            # get the best candidate sentence
-            best_candidate_sentence = lm_out['candidate_sentences'][0]
-
-            # store results
-            lm_results['session'].append(session)
-            lm_results['block'].append(test_data[session]['block_num'][trial])
-            lm_results['trial'].append(test_data[session]['trial_num'][trial])
-            if eval_type == 'val':
-                lm_results['true_sentence'].append(test_data[session]['sentence_label'][trial])
-            else:
-                lm_results['true_sentence'].append(None)
-            lm_results['pred_sentence'].append(best_candidate_sentence)
-
-            # update progress bar
-            pbar.update(1)
-pbar.close()
-
-
-# if using the validation set, lets calculate the aggregate word error rate (WER)
-if eval_type == 'val':
-    total_true_length = 0
-    total_edit_distance = 0
-
-    lm_results['edit_distance'] = []
-    lm_results['num_words'] = []
-
-    for i in range(len(lm_results['pred_sentence'])):
-        true_sentence = remove_punctuation(lm_results['true_sentence'][i]).strip()
-        pred_sentence = remove_punctuation(lm_results['pred_sentence'][i]).strip()
-        ed = editdistance.eval(true_sentence.split(), pred_sentence.split())
-
-        total_true_length += len(true_sentence.split())
-        total_edit_distance += ed
-
-        lm_results['edit_distance'].append(ed)
-        lm_results['num_words'].append(len(true_sentence.split()))
-
-        print(f'{lm_results["session"][i]} - Block {lm_results["block"][i]}, Trial {lm_results["trial"][i]}')
-        print(f'True sentence:       {true_sentence}')
-        print(f'Predicted sentence:  {pred_sentence}')
-        print(f'WER: {ed} / {100 * len(true_sentence.split())} = {ed / len(true_sentence.split()):.2f}%')
-        print()
-
-    print(f'Total true sentence length: {total_true_length}')
-    print(f'Total edit distance: {total_edit_distance}')
-    print(f'Aggregate Word Error Rate (WER): {100 * total_edit_distance / total_true_length:.2f}%')
-
-
-# write predicted sentences to a csv file. put a timestamp in the filename (YYYYMMDD_HHMMSS)
-output_file = os.path.join(model_path, f'CNNTransformer_{eval_type}_predicted_sentences_{time.strftime("%Y%m%d_%H%M%S")}.csv')
-ids = [i for i in range(len(lm_results['pred_sentence']))]
-df_out = pd.DataFrame({'id': ids, 'text': lm_results['pred_sentence']})
+# write predicted phoneme sequences to a csv file
+output_file = os.path.join(model_path, f'CNNTransformer_GreedySearch_{eval_type}_predicted_phonemes_{time.strftime("%Y%m%d_%H%M%S")}.csv')
+results_list = []
+for session, data in test_data.items():
+    for trial in range(len(data['pred_seq'])):
+        pred_seq_greedy = ' '.join([LOGIT_TO_PHONEME[p] for p in data['pred_seq'][trial]])
+        results_list.append({
+            'session': session,
+            'block': data['block_num'][trial],
+            'trial': data['trial_num'][trial],
+            'pred_phonemes_greedy': pred_seq_greedy,
+        })
+df_out = pd.DataFrame(results_list)
 df_out.to_csv(output_file, index=False)
+print(f"\nPredictions saved to: {output_file}")
+
+"""
+
+    Current problem: 
+    We have the phonemes, but how do we convert them to sentences?
+    The transformer-encoder -> n-gram -> OPT model pipeline worked, because the transformer-encoder outputted logits...    
+
+"""

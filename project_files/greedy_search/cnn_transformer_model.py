@@ -42,6 +42,9 @@ class PositionalEncoding(nn.Module):
         return x + self.pe[:, : x.size(1)]
 
 class CNNTransformer(nn.Module):
+    """
+    CNN-Transformer model with custom greedy search implementation.
+    """
     def __init__(
         self,
         neural_dim,
@@ -122,6 +125,11 @@ class CNNTransformer(nn.Module):
         # Slot 42 = EOS
         self.internal_vocab_size = n_classes + 2
 
+        # Special token IDs
+        self.pad_token_id = 0  # PAD/BLANK
+        self.bos_token_id = 41  # SOS
+        self.eos_token_id = 42  # EOS
+
         # Embedding for the target sequence (class indices)
         self.tgt_embedding = nn.Embedding(self.internal_vocab_size, n_units)
 
@@ -142,16 +150,22 @@ class CNNTransformer(nn.Module):
         # Explicit initialization call
         self._init_weights()
 
-    def forward(self, x, day_idx, states=None, return_state=False, tgt=None):
-        '''
-        x        (tensor)  - batch of examples (trials) of shape: (batch_size, time_series_length, neural_dim)
-        day_idx  (tensor)  - tensor which is a list of day indexes corresponding to the day of each example in the batch x.
-        '''
-        # --------------------------
-        # Part A: Encode Neural Data
-        # --------------------------
+    @property
+    def device(self):
+        return next(self.parameters()).device
 
-        # Apply day-specific layer to (hopefully) project neural data from the different days to the same latent space
+    def encode(self, x, day_idx):
+        """
+        Encode neural data to memory representation.
+
+        Args:
+            x: [B, T, neural_dim] - input neural features
+            day_idx: [B] - day indices for day-specific layers
+
+        Returns:
+            memory: [B, T_down, n_units] - encoded representation
+        """
+        # Apply day-specific layer
         day_weights = torch.stack([self.day_weights[i] for i in day_idx], dim=0)
         day_biases = torch.cat([self.day_biases[i] for i in day_idx], dim=0).unsqueeze(1)
         x = torch.einsum("btd,bdk->btk", x, day_weights) + day_biases
@@ -173,8 +187,57 @@ class CNNTransformer(nn.Module):
         # Positional encoding
         x = self.pos_encoding(x)
 
-        # memory is the encoded representation of the neural data
+        # Encode
         memory = self.encoder(x)  # [B, T_down, n_units]
+
+        return memory
+
+    def forward(self, x=None, day_idx=None, states=None, return_state=False, tgt=None,
+                encoder_outputs=None, decoder_input_ids=None, **kwargs):
+        '''
+        x        (tensor)  - batch of examples (trials) of shape: (batch_size, time_series_length, neural_dim)
+        day_idx  (tensor)  - tensor which is a list of day indexes corresponding to the day of each example in the batch x.
+        '''
+        # HuggingFace generation path
+        if encoder_outputs is not None:
+            # Extract memory from encoder_outputs
+            if isinstance(encoder_outputs, tuple):
+                memory = encoder_outputs[0]
+            else:
+                memory = encoder_outputs
+
+            # decoder_input_ids is the target sequence
+            tgt = decoder_input_ids
+
+            # Embed and decode
+            tgt_emb = self.tgt_embedding(tgt)  # [B, Seq_Len, n_units]
+            tgt_emb = self.pos_encoding(tgt_emb)
+
+            # Generate Causal Mask
+            seq_len = tgt.size(1)
+            tgt_mask = self.generate_square_subsequent_mask(seq_len).to(tgt.device)
+
+            # Transformer Decoder
+            x = self.decoder(
+                tgt=tgt_emb,
+                memory=memory,
+                tgt_mask=tgt_mask
+            )
+
+            # Final Projection
+            x = self.final_ln(x)
+            logits = self.out(x)  # [B, Seq_Len, vocab_size]
+
+            return logits
+
+        # Standard training path
+        if x is None:
+            raise ValueError("Either 'x' or 'encoder_outputs' must be provided.")
+
+        # --------------------------
+        # Part A: Encode Neural Data
+        # --------------------------
+        memory = self.encode(x, day_idx)
 
         # --------------------------
         # Part B: Decode to Sequence
@@ -210,11 +273,53 @@ class CNNTransformer(nn.Module):
         else:
             return logits
 
+    def prepare_inputs_for_generation(self, decoder_input_ids, encoder_outputs=None, **kwargs):
+        """
+        Prepare inputs for HuggingFace's generate() method.
+        """
+        return {
+            "decoder_input_ids": decoder_input_ids,
+            "encoder_outputs": encoder_outputs,
+        }
+
     def generate_square_subsequent_mask(self, sz):
         """Generates an upper-triangular matrix of -inf, with zeros on diag."""
         mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
         mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
         return mask
+
+    def greedy_decode(self, memory, max_length=100):
+        """
+        Perform greedy decoding (for comparison with beam search).
+
+        Args:
+            memory: [B, T, D] - encoder output
+            max_length: maximum sequence length
+
+        Returns:
+            generated: [B, max_seq_len] - generated token ids
+        """
+        batch_size = memory.size(0)
+        device = memory.device
+
+        generated = torch.full((batch_size, 1), self.bos_token_id, device=device, dtype=torch.long)
+
+        for _ in range(max_length - 1):
+            tgt_mask = self.generate_square_subsequent_mask(generated.size(1)).to(device)
+            tgt_emb = self.tgt_embedding(generated)
+            tgt_emb = self.pos_encoding(tgt_emb)
+
+            out = self.decoder(tgt=tgt_emb, memory=memory, tgt_mask=tgt_mask)
+            out = self.final_ln(out)
+            step_logits = self.out(out)  # [B, T, Vocab]
+
+            next_token = torch.argmax(step_logits[:, -1, :], dim=-1).unsqueeze(1)
+            generated = torch.cat((generated, next_token), dim=1)
+
+            if (next_token == self.eos_token_id).all():
+                break
+
+        return generated
 
     def _init_weights(self):
         for module in self.modules():

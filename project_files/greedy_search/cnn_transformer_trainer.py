@@ -708,6 +708,9 @@ class BrainToText_Trainer:
         EOS_IDX = 42
         PAD_IDX = 0
 
+        # Greedy search parameter from config
+        max_decode_length = self.args.get('greedy_search', {}).get('max_decode_length', 100)
+
         for i, batch in enumerate(loader):
 
             features = batch['input_features'].to(self.device)
@@ -777,25 +780,10 @@ class BrainToText_Trainer:
                     src = self.model.pos_encoding(src)
                     memory = self.model.encoder(src)
 
-                    # B. Decode Loop
-                    # --------------------------------
-                    generated = torch.full((batch_size, 1), SOS_IDX, device=self.device, dtype=torch.long)
-
-                    # Max gen len: fixed length
-                    for step in range(100):
-                        tgt_mask = self.model.generate_square_subsequent_mask(generated.size(1)).to(self.device)
-                        tgt_emb = self.model.tgt_embedding(generated)
-                        tgt_emb = self.model.pos_encoding(tgt_emb)
-
-                        out = self.model.decoder(tgt=tgt_emb, memory=memory, tgt_mask=tgt_mask)
-                        out = self.model.final_ln(out)
-                        step_logits = self.model.out(out)  # [B, T, Vocab]
-
-                        next_token = torch.argmax(step_logits[:, -1, :], dim=-1).unsqueeze(1)
-                        generated = torch.cat((generated, next_token), dim=1)
-
-                        if (next_token == EOS_IDX).all():
-                            break
+                    # ====================================================
+                    # GREEDY DECODING
+                    # ====================================================
+                    generated = self.model.greedy_decode(memory, max_length=max_decode_length)
 
                     # ====================================================
                     # CALCULATE METRICS
