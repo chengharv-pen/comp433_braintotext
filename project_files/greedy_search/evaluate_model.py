@@ -150,7 +150,7 @@ with tqdm(total=total_test_trials, desc='Predicting phoneme sequences', unit='tr
                     memory = model.encode(neural_input, torch.tensor([input_layer], device=device))
 
                     # Greedy decoding
-                    generated_greedy = model.greedy_decode(memory, max_length=100)
+                    generated_greedy = model.greedy_decode(memory, max_length=model_args['greedy_search']['max_decode_length'])
                     generated_beam = generated_greedy
 
             # Process greedy sequence
