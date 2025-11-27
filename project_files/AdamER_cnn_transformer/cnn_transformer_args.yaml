@@ -1,4 +1,4 @@
-adamer_beta: 0.5 # AdaMER beta learning rate
+adamer_beta: 0.8 # AdaMER beta learning rate
 
 model:
   n_input_features: 512 # number of input features in the neural data. (2 features per electrode, 256 electrodes)
@@ -27,14 +27,14 @@ model:
     input_layer_dropout: 0.2 # dropout rate for the input layer
 
 gpu_number: '0' # GPU number to use for training, formatted as a string (e.g., '0', '1', etc.)
-mode: train
+mode: x # LEAVE AS x IF NOT TRAINING
 use_amp: true # whether to use automatic mixed precision (AMP) for training
 
-output_dir: trained_models/cnn_transformer # directory to save the trained model and logs
-checkpoint_dir: trained_models/cnn_transformer/checkpoint # directory to save checkpoints during training
-init_from_checkpoint: false # whether to initialize the model from a checkpoint
-init_checkpoint_path: None # path to the checkpoint to initialize the model from, if any
-save_best_checkpoint: true # whether to save the best checkpoint based on validation metrics
+output_dir: trained_models/cnn_transformer_beta0.8 # directory to save the trained model and logs
+checkpoint_dir: trained_models/cnn_transformer_beta0.8/checkpoint # directory to save checkpoints during training
+init_from_checkpoint: true # whether to initialize the model from a checkpoint
+init_checkpoint_path: trained_models/cnn_transformer_beta0.8/checkpoint/best_checkpoint # path to the checkpoint to initialize the model from, if any
+save_best_checkpoint: false # whether to save the best checkpoint based on validation metrics
 save_all_val_steps: false # whether to save checkpoints at all validation steps
 save_final_model: false # whether to save the final model after training
 save_val_metrics: true # whether to save validation metrics during training
