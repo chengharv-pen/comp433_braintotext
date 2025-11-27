@@ -379,26 +379,69 @@ class BrainToText_Trainer:
         return LambdaLR(optim, lr_lambdas, -1)
 
     def load_model_checkpoint(self, load_path):
-        '''
-        Load a training checkpoint
-        '''
-        checkpoint = torch.load(load_path, weights_only=False)  # checkpoint is just a dict
+        """
+        Load a training checkpoint, copying old weights into the new out/tgt_embedding layers.
+        """
+        checkpoint = torch.load(load_path, weights_only=False)
+        state_dict = checkpoint['model_state_dict']
 
-        self.model.load_state_dict(checkpoint['model_state_dict'])
-        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        # Copy pretrained phoneme weights to new layers
+        # Handle possible _orig_mod prefix from DataParallel/torch.compile
+        def get_key(state_dict, layer_name):
+            for k in state_dict.keys():
+                if k.endswith(layer_name):
+                    return k
+            return None
+
+        # OUT layer
+        out_key = get_key(state_dict, 'out.weight')
+        if out_key is not None:
+            with torch.no_grad():
+                num_old = state_dict[out_key].shape[0]  # 41
+                num_new = self.model.out.weight.shape[0]  # 43
+                self.model.out.weight[:num_old].copy_(state_dict[out_key])
+                self.model.out.bias[:num_old].copy_(state_dict[out_key.replace('weight', 'bias')])
+
+        # TGT_EMBED layer
+        emb_key = get_key(state_dict, 'tgt_embedding.weight')
+        if emb_key is not None:
+            with torch.no_grad():
+                num_old = state_dict[emb_key].shape[0]  # 41
+                self.model.tgt_embedding.weight[:num_old].copy_(state_dict[emb_key])
+
+        # Load remaining weights (excluding out & tgt_embedding)
+        for key in ['out.weight', 'out.bias', 'tgt_embedding.weight']:
+            key_in_state = get_key(state_dict, key)
+            if key_in_state is not None:
+                del state_dict[key_in_state]
+
+        self.model.load_state_dict(state_dict, strict=False)
+
+        # Optimizer: preserve states for unchanged params only
+        old_opt_state = checkpoint['optimizer_state_dict']
+        new_state_dict = self.optimizer.state_dict()
+
+        # Map parameter id -> new param
+        param_map = {id(p): p for group in self.model.parameters() for p in group}
+
+        new_state = {}
+        for old_id, state in old_opt_state['state'].items():
+            if old_id in param_map:
+                new_state[id(param_map[old_id])] = state  # keep old state
+            # else: new params (e.g. SOS/EOS) remain uninitialized in optimizer
+
+        new_state_dict['state'] = new_state
+        self.optimizer.load_state_dict(new_state_dict)
+
+        # Scheduler
         self.learning_rate_scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
-        self.best_val_PER = checkpoint['val_PER']  # best phoneme error rate
-        self.best_val_loss = checkpoint['val_loss'] if 'val_loss' in checkpoint.keys() else torch.inf
+
+        self.best_val_PER = checkpoint.get('val_PER', None)
+        self.best_val_loss = checkpoint.get('val_loss', torch.inf)
 
         self.model.to(self.device)
 
-        # Send optimizer params back to GPU
-        for state in self.optimizer.state.values():
-            for k, v in state.items():
-                if isinstance(v, torch.Tensor):
-                    state[k] = v.to(self.device)
-
-        self.logger.info("Loaded model from checkpoint: " + load_path)
+        self.logger.info(f"Loaded model from checkpoint: {load_path}. Old weights copied into new 43-class layers.")
 
     def save_model_checkpoint(self, save_path, PER, loss):
         '''
