@@ -1,0 +1,565 @@
+
+================================================================================
+Testing Beam Search Configuration
+  - Beams: 6
+  - Length Penalty: 1.0
+  - Max Decode Length: 600
+  - Training Batches: 12000
+  - Output Dir: trained_models/beam_test_beam6_lp1.0_len600
+================================================================================
+
+2025-11-26 18:42:00,255: Using device: cuda:0
+2025-11-26 18:42:00,315: Using torch.compile
+2025-11-26 18:42:00,737: Initialized Transformer model with Beam Search support
+2025-11-26 18:42:00,737: OptimizedModule(
+  (_orig_mod): CNNTransformerForGeneration(
+    (day_layer_activation): Softsign()
+    (day_weights): ParameterList(
+        (0): Parameter containing: [torch.float32 of size 512x512]
+        (1): Parameter containing: [torch.float32 of size 512x512]
+        (2): Parameter containing: [torch.float32 of size 512x512]
+        (3): Parameter containing: [torch.float32 of size 512x512]
+        (4): Parameter containing: [torch.float32 of size 512x512]
+        (5): Parameter containing: [torch.float32 of size 512x512]
+        (6): Parameter containing: [torch.float32 of size 512x512]
+        (7): Parameter containing: [torch.float32 of size 512x512]
+        (8): Parameter containing: [torch.float32 of size 512x512]
+        (9): Parameter containing: [torch.float32 of size 512x512]
+        (10): Parameter containing: [torch.float32 of size 512x512]
+        (11): Parameter containing: [torch.float32 of size 512x512]
+        (12): Parameter containing: [torch.float32 of size 512x512]
+        (13): Parameter containing: [torch.float32 of size 512x512]
+        (14): Parameter containing: [torch.float32 of size 512x512]
+        (15): Parameter containing: [torch.float32 of size 512x512]
+        (16): Parameter containing: [torch.float32 of size 512x512]
+        (17): Parameter containing: [torch.float32 of size 512x512]
+        (18): Parameter containing: [torch.float32 of size 512x512]
+        (19): Parameter containing: [torch.float32 of size 512x512]
+        (20): Parameter containing: [torch.float32 of size 512x512]
+        (21): Parameter containing: [torch.float32 of size 512x512]
+        (22): Parameter containing: [torch.float32 of size 512x512]
+        (23): Parameter containing: [torch.float32 of size 512x512]
+        (24): Parameter containing: [torch.float32 of size 512x512]
+        (25): Parameter containing: [torch.float32 of size 512x512]
+        (26): Parameter containing: [torch.float32 of size 512x512]
+        (27): Parameter containing: [torch.float32 of size 512x512]
+        (28): Parameter containing: [torch.float32 of size 512x512]
+        (29): Parameter containing: [torch.float32 of size 512x512]
+        (30): Parameter containing: [torch.float32 of size 512x512]
+        (31): Parameter containing: [torch.float32 of size 512x512]
+        (32): Parameter containing: [torch.float32 of size 512x512]
+        (33): Parameter containing: [torch.float32 of size 512x512]
+        (34): Parameter containing: [torch.float32 of size 512x512]
+        (35): Parameter containing: [torch.float32 of size 512x512]
+        (36): Parameter containing: [torch.float32 of size 512x512]
+        (37): Parameter containing: [torch.float32 of size 512x512]
+        (38): Parameter containing: [torch.float32 of size 512x512]
+        (39): Parameter containing: [torch.float32 of size 512x512]
+        (40): Parameter containing: [torch.float32 of size 512x512]
+        (41): Parameter containing: [torch.float32 of size 512x512]
+        (42): Parameter containing: [torch.float32 of size 512x512]
+        (43): Parameter containing: [torch.float32 of size 512x512]
+        (44): Parameter containing: [torch.float32 of size 512x512]
+    )
+    (day_biases): ParameterList(
+        (0): Parameter containing: [torch.float32 of size 1x512]
+        (1): Parameter containing: [torch.float32 of size 1x512]
+        (2): Parameter containing: [torch.float32 of size 1x512]
+        (3): Parameter containing: [torch.float32 of size 1x512]
+        (4): Parameter containing: [torch.float32 of size 1x512]
+        (5): Parameter containing: [torch.float32 of size 1x512]
+        (6): Parameter containing: [torch.float32 of size 1x512]
+        (7): Parameter containing: [torch.float32 of size 1x512]
+        (8): Parameter containing: [torch.float32 of size 1x512]
+        (9): Parameter containing: [torch.float32 of size 1x512]
+        (10): Parameter containing: [torch.float32 of size 1x512]
+        (11): Parameter containing: [torch.float32 of size 1x512]
+        (12): Parameter containing: [torch.float32 of size 1x512]
+        (13): Parameter containing: [torch.float32 of size 1x512]
+        (14): Parameter containing: [torch.float32 of size 1x512]
+        (15): Parameter containing: [torch.float32 of size 1x512]
+        (16): Parameter containing: [torch.float32 of size 1x512]
+        (17): Parameter containing: [torch.float32 of size 1x512]
+        (18): Parameter containing: [torch.float32 of size 1x512]
+        (19): Parameter containing: [torch.float32 of size 1x512]
+        (20): Parameter containing: [torch.float32 of size 1x512]
+        (21): Parameter containing: [torch.float32 of size 1x512]
+        (22): Parameter containing: [torch.float32 of size 1x512]
+        (23): Parameter containing: [torch.float32 of size 1x512]
+        (24): Parameter containing: [torch.float32 of size 1x512]
+        (25): Parameter containing: [torch.float32 of size 1x512]
+        (26): Parameter containing: [torch.float32 of size 1x512]
+        (27): Parameter containing: [torch.float32 of size 1x512]
+        (28): Parameter containing: [torch.float32 of size 1x512]
+        (29): Parameter containing: [torch.float32 of size 1x512]
+        (30): Parameter containing: [torch.float32 of size 1x512]
+        (31): Parameter containing: [torch.float32 of size 1x512]
+        (32): Parameter containing: [torch.float32 of size 1x512]
+        (33): Parameter containing: [torch.float32 of size 1x512]
+        (34): Parameter containing: [torch.float32 of size 1x512]
+        (35): Parameter containing: [torch.float32 of size 1x512]
+        (36): Parameter containing: [torch.float32 of size 1x512]
+        (37): Parameter containing: [torch.float32 of size 1x512]
+        (38): Parameter containing: [torch.float32 of size 1x512]
+        (39): Parameter containing: [torch.float32 of size 1x512]
+        (40): Parameter containing: [torch.float32 of size 1x512]
+        (41): Parameter containing: [torch.float32 of size 1x512]
+        (42): Parameter containing: [torch.float32 of size 1x512]
+        (43): Parameter containing: [torch.float32 of size 1x512]
+        (44): Parameter containing: [torch.float32 of size 1x512]
+    )
+    (day_layer_dropout): Dropout(p=0.2, inplace=False)
+    (conv_frontend): Sequential(
+      (0): ConvBlock1D(
+        (conv): Conv1d(512, 128, kernel_size=(5,), stride=(2,), padding=(2,))
+        (bn): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (activation): ReLU()
+      )
+      (1): ConvBlock1D(
+        (conv): Conv1d(128, 256, kernel_size=(5,), stride=(2,), padding=(2,))
+        (bn): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (activation): ReLU()
+      )
+      (2): ConvBlock1D(
+        (conv): Conv1d(256, 256, kernel_size=(5,), stride=(1,), padding=(2,))
+        (bn): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (activation): ReLU()
+      )
+    )
+    (input_proj): Linear(in_features=256, out_features=512, bias=True)
+    (pos_encoding): PositionalEncoding()
+    (encoder): TransformerEncoder(
+      (layers): ModuleList(
+        (0-2): 3 x TransformerEncoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+          )
+          (linear1): Linear(in_features=512, out_features=2048, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (linear2): Linear(in_features=2048, out_features=512, bias=True)
+          (norm1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (norm2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (dropout1): Dropout(p=0.2, inplace=False)
+          (dropout2): Dropout(p=0.2, inplace=False)
+        )
+      )
+    )
+    (tgt_embedding): Embedding(43, 512)
+    (decoder): TransformerDecoder(
+      (layers): ModuleList(
+        (0): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+          )
+          (multihead_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+          )
+          (linear1): Linear(in_features=512, out_features=2048, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (linear2): Linear(in_features=2048, out_features=512, bias=True)
+          (norm1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (norm2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (norm3): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (dropout1): Dropout(p=0.2, inplace=False)
+          (dropout2): Dropout(p=0.2, inplace=False)
+          (dropout3): Dropout(p=0.2, inplace=False)
+        )
+      )
+    )
+    (final_ln): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+    (out): Linear(in_features=512, out_features=43, bias=True)
+  )
+)
+2025-11-26 18:42:00,738: Model has 26,478,507 parameters
+2025-11-26 18:42:00,738: Model has 11,819,520 day-specific parameters | 44.64% of total parameters
+2025-11-26 18:42:01,491: Successfully initialized datasets
+2025-11-26 18:42:05,672: Train batch 0: loss: 4.62 grad norm: 15.88 time: 2.821
+2025-11-26 18:42:05,672: Running test after training batch: 0
+2025-11-26 19:01:42,745: Val batch 0: PER (greedy): 20.2572 PER (beam): 20.2535 Cross Entropy Loss (avg): 4.7534 time: 1177.072
+2025-11-26 19:01:42,745: t15.2023.08.13 val PER (greedy): 21.3992 | PER (beam): 21.3950
+2025-11-26 19:01:42,745: t15.2023.08.18 val PER (greedy): 24.1987 | PER (beam): 24.1936
+2025-11-26 19:01:42,745: t15.2023.08.20 val PER (greedy): 22.4504 | PER (beam): 22.4376
+2025-11-26 19:01:42,745: t15.2023.08.25 val PER (greedy): 22.1566 | PER (beam): 22.1461
+2025-11-26 19:01:42,745: t15.2023.08.27 val PER (greedy): 23.6817 | PER (beam): 23.6704
+2025-11-26 19:01:42,745: t15.2023.09.01 val PER (greedy): 23.4489 | PER (beam): 23.4416
+2025-11-26 19:01:42,745: t15.2023.09.03 val PER (greedy): 23.7981 | PER (beam): 23.7922
+2025-11-26 19:01:42,745: t15.2023.09.24 val PER (greedy): 25.0316 | PER (beam): 25.0291
+2025-11-26 19:01:42,745: t15.2023.09.29 val PER (greedy): 17.9923 | PER (beam): 17.9943
+2025-11-26 19:01:42,745: t15.2023.10.01 val PER (greedy): 17.0627 | PER (beam): 17.0588
+2025-11-26 19:01:42,745: t15.2023.10.06 val PER (greedy): 22.8159 | PER (beam): 22.8159
+2025-11-26 19:01:42,745: t15.2023.10.08 val PER (greedy): 13.4398 | PER (beam): 13.4371
+2025-11-26 19:01:42,745: t15.2023.10.13 val PER (greedy): 20.0745 | PER (beam): 20.0675
+2025-11-26 19:01:42,745: t15.2023.10.15 val PER (greedy): 17.0231 | PER (beam): 17.0250
+2025-11-26 19:01:42,745: t15.2023.10.20 val PER (greedy): 17.7081 | PER (beam): 17.7081
+2025-11-26 19:01:42,745: t15.2023.10.22 val PER (greedy): 21.6147 | PER (beam): 21.6102
+2025-11-26 19:01:42,745: t15.2023.11.03 val PER (greedy): 19.9491 | PER (beam): 19.9539
+2025-11-26 19:01:42,745: t15.2023.11.04 val PER (greedy): 30.2423 | PER (beam): 30.2287
+2025-11-26 19:01:42,745: t15.2023.11.17 val PER (greedy): 22.8678 | PER (beam): 22.8678
+2025-11-26 19:01:42,745: t15.2023.11.19 val PER (greedy): 23.5130 | PER (beam): 23.5030
+2025-11-26 19:01:42,745: t15.2023.11.26 val PER (greedy): 18.7355 | PER (beam): 18.7370
+2025-11-26 19:01:42,745: t15.2023.12.03 val PER (greedy): 21.0011 | PER (beam): 21.0021
+2025-11-26 19:01:42,745: t15.2023.12.08 val PER (greedy): 19.5566 | PER (beam): 19.5506
+2025-11-26 19:01:42,746: t15.2023.12.10 val PER (greedy): 19.2996 | PER (beam): 19.2996
+2025-11-26 19:01:42,746: t15.2023.12.17 val PER (greedy): 18.2848 | PER (beam): 18.2838
+2025-11-26 19:01:42,746: t15.2023.12.29 val PER (greedy): 20.1633 | PER (beam): 20.1654
+2025-11-26 19:01:42,746: t15.2024.02.25 val PER (greedy): 18.9635 | PER (beam): 18.9551
+2025-11-26 19:01:42,746: t15.2024.03.08 val PER (greedy): 20.0825 | PER (beam): 20.0825
+2025-11-26 19:01:42,746: t15.2024.03.15 val PER (greedy): 17.6229 | PER (beam): 17.6148
+2025-11-26 19:01:42,746: t15.2024.03.17 val PER (greedy): 19.6597 | PER (beam): 19.6513
+2025-11-26 19:01:42,746: t15.2024.05.10 val PER (greedy): 21.8499 | PER (beam): 21.8470
+2025-11-26 19:01:42,746: t15.2024.06.14 val PER (greedy): 23.2208 | PER (beam): 23.2098
+2025-11-26 19:01:42,746: t15.2024.07.19 val PER (greedy): 18.5742 | PER (beam): 18.5748
+2025-11-26 19:01:42,746: t15.2024.07.21 val PER (greedy): 18.6241 | PER (beam): 18.6200
+2025-11-26 19:01:42,746: t15.2024.07.28 val PER (greedy): 20.7691 | PER (beam): 20.7691
+2025-11-26 19:01:42,746: t15.2025.01.10 val PER (greedy): 18.6226 | PER (beam): 18.6198
+2025-11-26 19:01:42,746: t15.2025.01.12 val PER (greedy): 21.3072 | PER (beam): 21.2964
+2025-11-26 19:01:42,746: t15.2025.03.14 val PER (greedy): 20.8757 | PER (beam): 20.8787
+2025-11-26 19:01:42,746: t15.2025.03.16 val PER (greedy): 18.4437 | PER (beam): 18.4293
+2025-11-26 19:01:42,746: t15.2025.03.30 val PER (greedy): 20.2897 | PER (beam): 20.2862
+2025-11-26 19:01:42,746: t15.2025.04.13 val PER (greedy): 20.9757 | PER (beam): 20.9686
+2025-11-26 19:01:42,761: New best test PER (beam) inf --> 20.2535
+2025-11-26 19:01:42,761: Checkpointing model
+2025-11-26 19:01:42,849: Saved model to checkpoint: trained_models/beam_test_beam6_lp1.0_len600/checkpoint/best_checkpoint
+2025-11-26 19:02:24,881: Train batch 200: loss: 2.98 grad norm: 2.09 time: 0.173
+2025-11-26 19:03:06,437: Train batch 400: loss: 2.50 grad norm: 3.33 time: 0.195
+2025-11-26 19:03:47,619: Train batch 600: loss: 2.29 grad norm: 3.41 time: 0.219
+2025-11-26 19:04:29,612: Train batch 800: loss: 1.86 grad norm: 3.08 time: 0.230
+2025-11-26 19:05:12,017: Train batch 1000: loss: 1.38 grad norm: 4.18 time: 0.241
+2025-11-26 19:05:54,068: Train batch 1200: loss: 0.85 grad norm: 3.11 time: 0.202
+2025-11-26 19:06:35,924: Train batch 1400: loss: 0.72 grad norm: 2.20 time: 0.204
+2025-11-26 19:07:16,487: Train batch 1600: loss: 0.70 grad norm: 2.18 time: 0.219
+2025-11-26 19:07:58,310: Train batch 1800: loss: 0.44 grad norm: 2.81 time: 0.182
+2025-11-26 19:08:40,482: Train batch 2000: loss: 0.39 grad norm: 2.19 time: 0.192
+2025-11-26 19:08:40,483: Running test after training batch: 2000
+2025-11-26 19:09:46,599: Val batch 2000: PER (greedy): 0.3349 PER (beam): 0.3125 Cross Entropy Loss (avg): 0.9578 time: 66.116
+2025-11-26 19:09:46,599: t15.2023.08.13 val PER (greedy): 0.2464 | PER (beam): 0.2339
+2025-11-26 19:09:46,599: t15.2023.08.18 val PER (greedy): 0.2565 | PER (beam): 0.2238
+2025-11-26 19:09:46,599: t15.2023.08.20 val PER (greedy): 0.1930 | PER (beam): 0.1859
+2025-11-26 19:09:46,599: t15.2023.08.25 val PER (greedy): 0.2801 | PER (beam): 0.2455
+2025-11-26 19:09:46,599: t15.2023.08.27 val PER (greedy): 0.3569 | PER (beam): 0.3376
+2025-11-26 19:09:46,599: t15.2023.09.01 val PER (greedy): 0.2403 | PER (beam): 0.2175
+2025-11-26 19:09:46,599: t15.2023.09.03 val PER (greedy): 0.3325 | PER (beam): 0.3124
+2025-11-26 19:09:46,599: t15.2023.09.24 val PER (greedy): 0.2087 | PER (beam): 0.1978
+2025-11-26 19:09:46,599: t15.2023.09.29 val PER (greedy): 0.3567 | PER (beam): 0.3440
+2025-11-26 19:09:46,599: t15.2023.10.01 val PER (greedy): 0.3758 | PER (beam): 0.3540
+2025-11-26 19:09:46,599: t15.2023.10.06 val PER (greedy): 0.2454 | PER (beam): 0.2357
+2025-11-26 19:09:46,599: t15.2023.10.08 val PER (greedy): 0.4046 | PER (beam): 0.3978
+2025-11-26 19:09:46,599: t15.2023.10.13 val PER (greedy): 0.4112 | PER (beam): 0.3918
+2025-11-26 19:09:46,599: t15.2023.10.15 val PER (greedy): 0.3593 | PER (beam): 0.3375
+2025-11-26 19:09:46,599: t15.2023.10.20 val PER (greedy): 0.3691 | PER (beam): 0.3456
+2025-11-26 19:09:46,599: t15.2023.10.22 val PER (greedy): 0.2940 | PER (beam): 0.2673
+2025-11-26 19:09:46,599: t15.2023.11.03 val PER (greedy): 0.3114 | PER (beam): 0.2978
+2025-11-26 19:09:46,599: t15.2023.11.04 val PER (greedy): 0.0614 | PER (beam): 0.0512
+2025-11-26 19:09:46,599: t15.2023.11.17 val PER (greedy): 0.1509 | PER (beam): 0.1306
+2025-11-26 19:09:46,599: t15.2023.11.19 val PER (greedy): 0.1277 | PER (beam): 0.1397
+2025-11-26 19:09:46,599: t15.2023.11.26 val PER (greedy): 0.3152 | PER (beam): 0.2971
+2025-11-26 19:09:46,599: t15.2023.12.03 val PER (greedy): 0.2973 | PER (beam): 0.2658
+2025-11-26 19:09:46,599: t15.2023.12.08 val PER (greedy): 0.3276 | PER (beam): 0.2996
+2025-11-26 19:09:46,600: t15.2023.12.10 val PER (greedy): 0.2720 | PER (beam): 0.2352
+2025-11-26 19:09:46,600: t15.2023.12.17 val PER (greedy): 0.3337 | PER (beam): 0.3025
+2025-11-26 19:09:46,600: t15.2023.12.29 val PER (greedy): 0.3727 | PER (beam): 0.3542
+2025-11-26 19:09:46,600: t15.2024.02.25 val PER (greedy): 0.3188 | PER (beam): 0.3076
+2025-11-26 19:09:46,600: t15.2024.03.08 val PER (greedy): 0.4865 | PER (beam): 0.4680
+2025-11-26 19:09:46,600: t15.2024.03.15 val PER (greedy): 0.3646 | PER (beam): 0.3440
+2025-11-26 19:09:46,600: t15.2024.03.17 val PER (greedy): 0.3543 | PER (beam): 0.3229
+2025-11-26 19:09:46,600: t15.2024.05.10 val PER (greedy): 0.3091 | PER (beam): 0.3001
+2025-11-26 19:09:46,600: t15.2024.06.14 val PER (greedy): 0.3533 | PER (beam): 0.3407
+2025-11-26 19:09:46,600: t15.2024.07.19 val PER (greedy): 0.4964 | PER (beam): 0.4608
+2025-11-26 19:09:46,600: t15.2024.07.21 val PER (greedy): 0.2717 | PER (beam): 0.2462
+2025-11-26 19:09:46,600: t15.2024.07.28 val PER (greedy): 0.2919 | PER (beam): 0.2551
+2025-11-26 19:09:46,600: t15.2025.01.10 val PER (greedy): 0.4848 | PER (beam): 0.4780
+2025-11-26 19:09:46,600: t15.2025.01.12 val PER (greedy): 0.4065 | PER (beam): 0.3657
+2025-11-26 19:09:46,600: t15.2025.03.14 val PER (greedy): 0.5118 | PER (beam): 0.4852
+2025-11-26 19:09:46,600: t15.2025.03.16 val PER (greedy): 0.4149 | PER (beam): 0.3796
+2025-11-26 19:09:46,600: t15.2025.03.30 val PER (greedy): 0.5057 | PER (beam): 0.4598
+2025-11-26 19:09:46,600: t15.2025.04.13 val PER (greedy): 0.3994 | PER (beam): 0.3780
+2025-11-26 19:09:46,600: New best test PER (beam) 20.2535 --> 0.3125
+2025-11-26 19:09:46,600: Checkpointing model
+2025-11-26 19:09:46,828: Saved model to checkpoint: trained_models/beam_test_beam6_lp1.0_len600/checkpoint/best_checkpoint
+2025-11-26 19:10:29,022: Train batch 2200: loss: 0.42 grad norm: 1.82 time: 0.218
+2025-11-26 19:11:10,993: Train batch 2400: loss: 0.19 grad norm: 1.08 time: 0.222
+2025-11-26 19:11:51,766: Train batch 2600: loss: 0.09 grad norm: 0.69 time: 0.186
+2025-11-26 19:12:33,550: Train batch 2800: loss: 0.21 grad norm: 1.52 time: 0.175
+2025-11-26 19:13:15,673: Train batch 3000: loss: 0.11 grad norm: 0.89 time: 0.242
+2025-11-26 19:13:57,552: Train batch 3200: loss: 0.15 grad norm: 1.05 time: 0.205
+2025-11-26 19:14:38,967: Train batch 3400: loss: 0.06 grad norm: 0.82 time: 0.162
+2025-11-26 19:15:20,735: Train batch 3600: loss: 0.10 grad norm: 0.91 time: 0.172
+2025-11-26 19:16:01,775: Train batch 3800: loss: 0.09 grad norm: 0.78 time: 0.238
+2025-11-26 19:16:43,272: Train batch 4000: loss: 0.08 grad norm: 0.80 time: 0.182
+2025-11-26 19:16:43,272: Running test after training batch: 4000
+2025-11-26 19:17:46,996: Val batch 4000: PER (greedy): 0.2115 PER (beam): 0.2051 Cross Entropy Loss (avg): 0.7468 time: 63.724
+2025-11-26 19:17:46,997: t15.2023.08.13 val PER (greedy): 0.1674 | PER (beam): 0.1684
+2025-11-26 19:17:46,997: t15.2023.08.18 val PER (greedy): 0.1450 | PER (beam): 0.1391
+2025-11-26 19:17:46,997: t15.2023.08.20 val PER (greedy): 0.1390 | PER (beam): 0.1311
+2025-11-26 19:17:46,997: t15.2023.08.25 val PER (greedy): 0.1581 | PER (beam): 0.1386
+2025-11-26 19:17:46,997: t15.2023.08.27 val PER (greedy): 0.2395 | PER (beam): 0.2299
+2025-11-26 19:17:46,997: t15.2023.09.01 val PER (greedy): 0.1071 | PER (beam): 0.1006
+2025-11-26 19:17:46,997: t15.2023.09.03 val PER (greedy): 0.1983 | PER (beam): 0.1817
+2025-11-26 19:17:46,997: t15.2023.09.24 val PER (greedy): 0.1165 | PER (beam): 0.1165
+2025-11-26 19:17:46,997: t15.2023.09.29 val PER (greedy): 0.2246 | PER (beam): 0.2202
+2025-11-26 19:17:46,997: t15.2023.10.01 val PER (greedy): 0.2820 | PER (beam): 0.2715
+2025-11-26 19:17:46,997: t15.2023.10.06 val PER (greedy): 0.1281 | PER (beam): 0.1195
+2025-11-26 19:17:46,997: t15.2023.10.08 val PER (greedy): 0.3248 | PER (beam): 0.3383
+2025-11-26 19:17:46,997: t15.2023.10.13 val PER (greedy): 0.2715 | PER (beam): 0.2669
+2025-11-26 19:17:46,997: t15.2023.10.15 val PER (greedy): 0.2577 | PER (beam): 0.2485
+2025-11-26 19:17:46,997: t15.2023.10.20 val PER (greedy): 0.3154 | PER (beam): 0.3020
+2025-11-26 19:17:46,997: t15.2023.10.22 val PER (greedy): 0.1871 | PER (beam): 0.1860
+2025-11-26 19:17:46,997: t15.2023.11.03 val PER (greedy): 0.2388 | PER (beam): 0.2327
+2025-11-26 19:17:46,997: t15.2023.11.04 val PER (greedy): 0.0375 | PER (beam): 0.0375
+2025-11-26 19:17:46,997: t15.2023.11.17 val PER (greedy): 0.0451 | PER (beam): 0.0451
+2025-11-26 19:17:46,997: t15.2023.11.19 val PER (greedy): 0.0459 | PER (beam): 0.0459
+2025-11-26 19:17:46,997: t15.2023.11.26 val PER (greedy): 0.1775 | PER (beam): 0.1688
+2025-11-26 19:17:46,997: t15.2023.12.03 val PER (greedy): 0.1660 | PER (beam): 0.1702
+2025-11-26 19:17:46,997: t15.2023.12.08 val PER (greedy): 0.1578 | PER (beam): 0.1478
+2025-11-26 19:17:46,997: t15.2023.12.10 val PER (greedy): 0.1327 | PER (beam): 0.1209
+2025-11-26 19:17:46,997: t15.2023.12.17 val PER (greedy): 0.1830 | PER (beam): 0.1850
+2025-11-26 19:17:46,997: t15.2023.12.29 val PER (greedy): 0.2306 | PER (beam): 0.2169
+2025-11-26 19:17:46,997: t15.2024.02.25 val PER (greedy): 0.1938 | PER (beam): 0.1840
+2025-11-26 19:17:46,997: t15.2024.03.08 val PER (greedy): 0.3684 | PER (beam): 0.3741
+2025-11-26 19:17:46,997: t15.2024.03.15 val PER (greedy): 0.2864 | PER (beam): 0.2720
+2025-11-26 19:17:46,997: t15.2024.03.17 val PER (greedy): 0.1911 | PER (beam): 0.1869
+2025-11-26 19:17:46,997: t15.2024.05.10 val PER (greedy): 0.1798 | PER (beam): 0.1753
+2025-11-26 19:17:46,997: t15.2024.06.14 val PER (greedy): 0.2303 | PER (beam): 0.2129
+2025-11-26 19:17:46,997: t15.2024.07.19 val PER (greedy): 0.2940 | PER (beam): 0.2861
+2025-11-26 19:17:46,997: t15.2024.07.21 val PER (greedy): 0.1593 | PER (beam): 0.1531
+2025-11-26 19:17:46,997: t15.2024.07.28 val PER (greedy): 0.1603 | PER (beam): 0.1559
+2025-11-26 19:17:46,997: t15.2025.01.10 val PER (greedy): 0.3691 | PER (beam): 0.3609
+2025-11-26 19:17:46,997: t15.2025.01.12 val PER (greedy): 0.2156 | PER (beam): 0.2086
+2025-11-26 19:17:46,997: t15.2025.03.14 val PER (greedy): 0.3654 | PER (beam): 0.3595
+2025-11-26 19:17:46,997: t15.2025.03.16 val PER (greedy): 0.2264 | PER (beam): 0.2369
+2025-11-26 19:17:46,997: t15.2025.03.30 val PER (greedy): 0.3471 | PER (beam): 0.3356
+2025-11-26 19:17:46,997: t15.2025.04.13 val PER (greedy): 0.3210 | PER (beam): 0.3124
+2025-11-26 19:17:46,997: New best test PER (beam) 0.3125 --> 0.2051
+2025-11-26 19:17:46,997: Checkpointing model
+2025-11-26 19:17:47,235: Saved model to checkpoint: trained_models/beam_test_beam6_lp1.0_len600/checkpoint/best_checkpoint
+2025-11-26 19:18:27,903: Train batch 4200: loss: 0.07 grad norm: 0.87 time: 0.260
+2025-11-26 19:19:08,993: Train batch 4400: loss: 0.05 grad norm: 0.55 time: 0.173
+2025-11-26 19:19:48,880: Train batch 4600: loss: 0.06 grad norm: 0.76 time: 0.205
+2025-11-26 19:20:29,566: Train batch 4800: loss: 0.05 grad norm: 0.63 time: 0.181
+2025-11-26 19:21:10,772: Train batch 5000: loss: 0.03 grad norm: 0.51 time: 0.183
+2025-11-26 19:21:52,339: Train batch 5200: loss: 0.05 grad norm: 0.57 time: 0.195
+2025-11-26 19:22:33,863: Train batch 5400: loss: 0.03 grad norm: 0.47 time: 0.222
+2025-11-26 19:23:14,839: Train batch 5600: loss: 0.03 grad norm: 0.45 time: 0.191
+2025-11-26 19:23:55,563: Train batch 5800: loss: 0.03 grad norm: 0.51 time: 0.195
+2025-11-26 19:24:36,401: Train batch 6000: loss: 0.06 grad norm: 0.58 time: 0.233
+2025-11-26 19:24:36,401: Running test after training batch: 6000
+2025-11-26 19:25:57,650: Val batch 6000: PER (greedy): 0.1920 PER (beam): 0.1875 Cross Entropy Loss (avg): 0.7421 time: 81.249
+2025-11-26 19:25:57,650: t15.2023.08.13 val PER (greedy): 0.1341 | PER (beam): 0.1351
+2025-11-26 19:25:57,650: t15.2023.08.18 val PER (greedy): 0.1366 | PER (beam): 0.1282
+2025-11-26 19:25:57,650: t15.2023.08.20 val PER (greedy): 0.1136 | PER (beam): 0.1128
+2025-11-26 19:25:57,650: t15.2023.08.25 val PER (greedy): 0.1310 | PER (beam): 0.1235
+2025-11-26 19:25:57,650: t15.2023.08.27 val PER (greedy): 0.2251 | PER (beam): 0.2267
+2025-11-26 19:25:57,650: t15.2023.09.01 val PER (greedy): 0.0706 | PER (beam): 0.0674
+2025-11-26 19:25:57,650: t15.2023.09.03 val PER (greedy): 0.1948 | PER (beam): 0.1793
+2025-11-26 19:25:57,650: t15.2023.09.24 val PER (greedy): 0.1153 | PER (beam): 0.1104
+2025-11-26 19:25:57,650: t15.2023.09.29 val PER (greedy): 0.2208 | PER (beam): 0.2068
+2025-11-26 19:25:57,650: t15.2023.10.01 val PER (greedy): 0.2715 | PER (beam): 0.2721
+2025-11-26 19:25:57,650: t15.2023.10.06 val PER (greedy): 0.1259 | PER (beam): 0.1163
+2025-11-26 19:25:57,650: t15.2023.10.08 val PER (greedy): 0.3464 | PER (beam): 0.3505
+2025-11-26 19:25:57,650: t15.2023.10.13 val PER (greedy): 0.2661 | PER (beam): 0.2614
+2025-11-26 19:25:57,650: t15.2023.10.15 val PER (greedy): 0.2492 | PER (beam): 0.2314
+2025-11-26 19:25:57,650: t15.2023.10.20 val PER (greedy): 0.3389 | PER (beam): 0.3188
+2025-11-26 19:25:57,650: t15.2023.10.22 val PER (greedy): 0.1893 | PER (beam): 0.1759
+2025-11-26 19:25:57,650: t15.2023.11.03 val PER (greedy): 0.2232 | PER (beam): 0.2239
+2025-11-26 19:25:57,650: t15.2023.11.04 val PER (greedy): 0.0341 | PER (beam): 0.0341
+2025-11-26 19:25:57,650: t15.2023.11.17 val PER (greedy): 0.0560 | PER (beam): 0.0544
+2025-11-26 19:25:57,650: t15.2023.11.19 val PER (greedy): 0.0419 | PER (beam): 0.0439
+2025-11-26 19:25:57,650: t15.2023.11.26 val PER (greedy): 0.1601 | PER (beam): 0.1565
+2025-11-26 19:25:57,650: t15.2023.12.03 val PER (greedy): 0.1261 | PER (beam): 0.1218
+2025-11-26 19:25:57,650: t15.2023.12.08 val PER (greedy): 0.1238 | PER (beam): 0.1192
+2025-11-26 19:25:57,650: t15.2023.12.10 val PER (greedy): 0.1143 | PER (beam): 0.1143
+2025-11-26 19:25:57,650: t15.2023.12.17 val PER (greedy): 0.1767 | PER (beam): 0.1632
+2025-11-26 19:25:57,650: t15.2023.12.29 val PER (greedy): 0.2086 | PER (beam): 0.2086
+2025-11-26 19:25:57,651: t15.2024.02.25 val PER (greedy): 0.1798 | PER (beam): 0.1812
+2025-11-26 19:25:57,651: t15.2024.03.08 val PER (greedy): 0.3215 | PER (beam): 0.3087
+2025-11-26 19:25:57,651: t15.2024.03.15 val PER (greedy): 0.2570 | PER (beam): 0.2520
+2025-11-26 19:25:57,651: t15.2024.03.17 val PER (greedy): 0.1450 | PER (beam): 0.1409
+2025-11-26 19:25:57,651: t15.2024.05.10 val PER (greedy): 0.1620 | PER (beam): 0.1679
+2025-11-26 19:25:57,651: t15.2024.06.14 val PER (greedy): 0.1767 | PER (beam): 0.1782
+2025-11-26 19:25:57,651: t15.2024.07.19 val PER (greedy): 0.2729 | PER (beam): 0.2690
+2025-11-26 19:25:57,651: t15.2024.07.21 val PER (greedy): 0.1276 | PER (beam): 0.1359
+2025-11-26 19:25:57,651: t15.2024.07.28 val PER (greedy): 0.1265 | PER (beam): 0.1191
+2025-11-26 19:25:57,651: t15.2025.01.10 val PER (greedy): 0.3292 | PER (beam): 0.3237
+2025-11-26 19:25:57,651: t15.2025.01.12 val PER (greedy): 0.1763 | PER (beam): 0.1640
+2025-11-26 19:25:57,651: t15.2025.03.14 val PER (greedy): 0.3905 | PER (beam): 0.4009
+2025-11-26 19:25:57,651: t15.2025.03.16 val PER (greedy): 0.2238 | PER (beam): 0.2395
+2025-11-26 19:25:57,651: t15.2025.03.30 val PER (greedy): 0.3126 | PER (beam): 0.2943
+2025-11-26 19:25:57,651: t15.2025.04.13 val PER (greedy): 0.2767 | PER (beam): 0.2668
+2025-11-26 19:25:57,651: New best test PER (beam) 0.2051 --> 0.1875
+2025-11-26 19:25:57,651: Checkpointing model
+2025-11-26 19:25:57,945: Saved model to checkpoint: trained_models/beam_test_beam6_lp1.0_len600/checkpoint/best_checkpoint
+2025-11-26 19:26:39,017: Train batch 6200: loss: 0.02 grad norm: 0.43 time: 0.219
+2025-11-26 19:27:20,345: Train batch 6400: loss: 0.03 grad norm: 0.48 time: 0.208
+2025-11-26 19:28:01,698: Train batch 6600: loss: 0.03 grad norm: 0.53 time: 0.203
+2025-11-26 19:28:43,720: Train batch 6800: loss: 0.02 grad norm: 0.42 time: 0.208
+2025-11-26 19:29:24,877: Train batch 7000: loss: 0.04 grad norm: 0.55 time: 0.168
+2025-11-26 19:30:07,010: Train batch 7200: loss: 0.02 grad norm: 0.44 time: 0.185
+2025-11-26 19:30:48,708: Train batch 7400: loss: 0.03 grad norm: 0.49 time: 0.161
+2025-11-26 19:31:30,755: Train batch 7600: loss: 0.03 grad norm: 0.47 time: 0.244
+2025-11-26 19:32:12,339: Train batch 7800: loss: 0.04 grad norm: 0.61 time: 0.205
+2025-11-26 19:32:54,183: Train batch 8000: loss: 0.02 grad norm: 0.46 time: 0.214
+2025-11-26 19:32:54,183: Running test after training batch: 8000
+2025-11-26 19:34:03,039: Val batch 8000: PER (greedy): 0.1828 PER (beam): 0.1794 Cross Entropy Loss (avg): 0.7317 time: 68.856
+2025-11-26 19:34:03,039: t15.2023.08.13 val PER (greedy): 0.1435 | PER (beam): 0.1424
+2025-11-26 19:34:03,039: t15.2023.08.18 val PER (greedy): 0.1098 | PER (beam): 0.1148
+2025-11-26 19:34:03,039: t15.2023.08.20 val PER (greedy): 0.1033 | PER (beam): 0.1017
+2025-11-26 19:34:03,039: t15.2023.08.25 val PER (greedy): 0.1250 | PER (beam): 0.1160
+2025-11-26 19:34:03,039: t15.2023.08.27 val PER (greedy): 0.2428 | PER (beam): 0.2412
+2025-11-26 19:34:03,039: t15.2023.09.01 val PER (greedy): 0.0657 | PER (beam): 0.0657
+2025-11-26 19:34:03,039: t15.2023.09.03 val PER (greedy): 0.1781 | PER (beam): 0.1758
+2025-11-26 19:34:03,039: t15.2023.09.24 val PER (greedy): 0.1201 | PER (beam): 0.1165
+2025-11-26 19:34:03,039: t15.2023.09.29 val PER (greedy): 0.2080 | PER (beam): 0.2068
+2025-11-26 19:34:03,039: t15.2023.10.01 val PER (greedy): 0.2523 | PER (beam): 0.2543
+2025-11-26 19:34:03,039: t15.2023.10.06 val PER (greedy): 0.1389 | PER (beam): 0.1367
+2025-11-26 19:34:03,039: t15.2023.10.08 val PER (greedy): 0.3261 | PER (beam): 0.3302
+2025-11-26 19:34:03,039: t15.2023.10.13 val PER (greedy): 0.2436 | PER (beam): 0.2514
+2025-11-26 19:34:03,039: t15.2023.10.15 val PER (greedy): 0.2142 | PER (beam): 0.2090
+2025-11-26 19:34:03,039: t15.2023.10.20 val PER (greedy): 0.2383 | PER (beam): 0.2383
+2025-11-26 19:34:03,039: t15.2023.10.22 val PER (greedy): 0.1537 | PER (beam): 0.1492
+2025-11-26 19:34:03,039: t15.2023.11.03 val PER (greedy): 0.1934 | PER (beam): 0.1954
+2025-11-26 19:34:03,039: t15.2023.11.04 val PER (greedy): 0.0341 | PER (beam): 0.0341
+2025-11-26 19:34:03,039: t15.2023.11.17 val PER (greedy): 0.0327 | PER (beam): 0.0358
+2025-11-26 19:34:03,039: t15.2023.11.19 val PER (greedy): 0.0679 | PER (beam): 0.0639
+2025-11-26 19:34:03,039: t15.2023.11.26 val PER (greedy): 0.1304 | PER (beam): 0.1254
+2025-11-26 19:34:03,039: t15.2023.12.03 val PER (greedy): 0.1218 | PER (beam): 0.1187
+2025-11-26 19:34:03,051: t15.2023.12.08 val PER (greedy): 0.0999 | PER (beam): 0.0999
+2025-11-26 19:34:03,051: t15.2023.12.10 val PER (greedy): 0.1104 | PER (beam): 0.1038
+2025-11-26 19:34:03,051: t15.2023.12.17 val PER (greedy): 0.2017 | PER (beam): 0.1819
+2025-11-26 19:34:03,051: t15.2023.12.29 val PER (greedy): 0.1867 | PER (beam): 0.1853
+2025-11-26 19:34:03,051: t15.2024.02.25 val PER (greedy): 0.1657 | PER (beam): 0.1489
+2025-11-26 19:34:03,051: t15.2024.03.08 val PER (greedy): 0.3016 | PER (beam): 0.2973
+2025-11-26 19:34:03,051: t15.2024.03.15 val PER (greedy): 0.2508 | PER (beam): 0.2489
+2025-11-26 19:34:03,051: t15.2024.03.17 val PER (greedy): 0.1437 | PER (beam): 0.1381
+2025-11-26 19:34:03,051: t15.2024.05.10 val PER (greedy): 0.1664 | PER (beam): 0.1679
+2025-11-26 19:34:03,051: t15.2024.06.14 val PER (greedy): 0.1767 | PER (beam): 0.1703
+2025-11-26 19:34:03,051: t15.2024.07.19 val PER (greedy): 0.2729 | PER (beam): 0.2637
+2025-11-26 19:34:03,051: t15.2024.07.21 val PER (greedy): 0.1386 | PER (beam): 0.1331
+2025-11-26 19:34:03,051: t15.2024.07.28 val PER (greedy): 0.1353 | PER (beam): 0.1265
+2025-11-26 19:34:03,051: t15.2025.01.10 val PER (greedy): 0.3499 | PER (beam): 0.3471
+2025-11-26 19:34:03,051: t15.2025.01.12 val PER (greedy): 0.1894 | PER (beam): 0.1786
+2025-11-26 19:34:03,051: t15.2025.03.14 val PER (greedy): 0.3817 | PER (beam): 0.3846
+2025-11-26 19:34:03,051: t15.2025.03.16 val PER (greedy): 0.1767 | PER (beam): 0.1662
+2025-11-26 19:34:03,051: t15.2025.03.30 val PER (greedy): 0.3253 | PER (beam): 0.3149
+2025-11-26 19:34:03,051: t15.2025.04.13 val PER (greedy): 0.2767 | PER (beam): 0.2725
+2025-11-26 19:34:03,051: New best test PER (beam) 0.1875 --> 0.1794
+2025-11-26 19:34:03,051: Checkpointing model
+2025-11-26 19:34:03,283: Saved model to checkpoint: trained_models/beam_test_beam6_lp1.0_len600/checkpoint/best_checkpoint
+2025-11-26 19:34:44,647: Train batch 8200: loss: 0.02 grad norm: 0.35 time: 0.203
+2025-11-26 19:35:26,227: Train batch 8400: loss: 0.03 grad norm: 0.43 time: 0.250
+2025-11-26 19:36:07,741: Train batch 8600: loss: 0.03 grad norm: 0.44 time: 0.227
+2025-11-26 19:36:49,038: Train batch 8800: loss: 0.02 grad norm: 0.32 time: 0.247
+2025-11-26 19:37:30,538: Train batch 9000: loss: 0.03 grad norm: 0.50 time: 0.229
+2025-11-26 19:38:12,904: Train batch 9200: loss: 0.02 grad norm: 0.40 time: 0.184
+2025-11-26 19:38:54,155: Train batch 9400: loss: 0.03 grad norm: 0.50 time: 0.168
+2025-11-26 19:39:35,265: Train batch 9600: loss: 0.04 grad norm: 0.56 time: 0.197
+2025-11-26 19:40:16,848: Train batch 9800: loss: 0.04 grad norm: 0.52 time: 0.179
+2025-11-26 19:40:58,599: Train batch 10000: loss: 0.02 grad norm: 0.36 time: 0.266
+2025-11-26 19:40:58,599: Running test after training batch: 10000
+2025-11-26 19:42:22,900: Val batch 10000: PER (greedy): 0.1768 PER (beam): 0.1725 Cross Entropy Loss (avg): 0.7209 time: 84.301
+2025-11-26 19:42:22,900: t15.2023.08.13 val PER (greedy): 0.1258 | PER (beam): 0.1247
+2025-11-26 19:42:22,900: t15.2023.08.18 val PER (greedy): 0.1006 | PER (beam): 0.1165
+2025-11-26 19:42:22,900: t15.2023.08.20 val PER (greedy): 0.0953 | PER (beam): 0.0842
+2025-11-26 19:42:22,900: t15.2023.08.25 val PER (greedy): 0.0798 | PER (beam): 0.0904
+2025-11-26 19:42:22,900: t15.2023.08.27 val PER (greedy): 0.2010 | PER (beam): 0.2058
+2025-11-26 19:42:22,900: t15.2023.09.01 val PER (greedy): 0.0860 | PER (beam): 0.0852
+2025-11-26 19:42:22,900: t15.2023.09.03 val PER (greedy): 0.1425 | PER (beam): 0.1449
+2025-11-26 19:42:22,900: t15.2023.09.24 val PER (greedy): 0.1153 | PER (beam): 0.1177
+2025-11-26 19:42:22,900: t15.2023.09.29 val PER (greedy): 0.2304 | PER (beam): 0.2068
+2025-11-26 19:42:22,900: t15.2023.10.01 val PER (greedy): 0.2563 | PER (beam): 0.2431
+2025-11-26 19:42:22,900: t15.2023.10.06 val PER (greedy): 0.1238 | PER (beam): 0.1184
+2025-11-26 19:42:22,901: t15.2023.10.08 val PER (greedy): 0.2991 | PER (beam): 0.3018
+2025-11-26 19:42:22,901: t15.2023.10.13 val PER (greedy): 0.2389 | PER (beam): 0.2428
+2025-11-26 19:42:22,901: t15.2023.10.15 val PER (greedy): 0.2057 | PER (beam): 0.2090
+2025-11-26 19:42:22,901: t15.2023.10.20 val PER (greedy): 0.3154 | PER (beam): 0.2953
+2025-11-26 19:42:22,901: t15.2023.10.22 val PER (greedy): 0.1637 | PER (beam): 0.1548
+2025-11-26 19:42:22,901: t15.2023.11.03 val PER (greedy): 0.1967 | PER (beam): 0.1947
+2025-11-26 19:42:22,901: t15.2023.11.04 val PER (greedy): 0.0239 | PER (beam): 0.0239
+2025-11-26 19:42:22,901: t15.2023.11.17 val PER (greedy): 0.0171 | PER (beam): 0.0171
+2025-11-26 19:42:22,901: t15.2023.11.19 val PER (greedy): 0.0798 | PER (beam): 0.0798
+2025-11-26 19:42:22,901: t15.2023.11.26 val PER (greedy): 0.1319 | PER (beam): 0.1261
+2025-11-26 19:42:22,901: t15.2023.12.03 val PER (greedy): 0.1439 | PER (beam): 0.1334
+2025-11-26 19:42:22,901: t15.2023.12.08 val PER (greedy): 0.0919 | PER (beam): 0.0885
+2025-11-26 19:42:22,901: t15.2023.12.10 val PER (greedy): 0.1025 | PER (beam): 0.0854
+2025-11-26 19:42:22,901: t15.2023.12.17 val PER (greedy): 0.1580 | PER (beam): 0.1601
+2025-11-26 19:42:22,901: t15.2023.12.29 val PER (greedy): 0.1613 | PER (beam): 0.1572
+2025-11-26 19:42:22,901: t15.2024.02.25 val PER (greedy): 0.1685 | PER (beam): 0.1587
+2025-11-26 19:42:22,901: t15.2024.03.08 val PER (greedy): 0.2831 | PER (beam): 0.2760
+2025-11-26 19:42:22,901: t15.2024.03.15 val PER (greedy): 0.2508 | PER (beam): 0.2464
+2025-11-26 19:42:22,901: t15.2024.03.17 val PER (greedy): 0.1311 | PER (beam): 0.1227
+2025-11-26 19:42:22,901: t15.2024.05.10 val PER (greedy): 0.1783 | PER (beam): 0.1679
+2025-11-26 19:42:22,901: t15.2024.06.14 val PER (greedy): 0.1782 | PER (beam): 0.1798
+2025-11-26 19:42:22,901: t15.2024.07.19 val PER (greedy): 0.2729 | PER (beam): 0.2551
+2025-11-26 19:42:22,901: t15.2024.07.21 val PER (greedy): 0.1186 | PER (beam): 0.1131
+2025-11-26 19:42:22,901: t15.2024.07.28 val PER (greedy): 0.1103 | PER (beam): 0.1088
+2025-11-26 19:42:22,901: t15.2025.01.10 val PER (greedy): 0.3127 | PER (beam): 0.3196
+2025-11-26 19:42:22,901: t15.2025.01.12 val PER (greedy): 0.1640 | PER (beam): 0.1647
+2025-11-26 19:42:22,901: t15.2025.03.14 val PER (greedy): 0.3698 | PER (beam): 0.3595
+2025-11-26 19:42:22,901: t15.2025.03.16 val PER (greedy): 0.2291 | PER (beam): 0.2212
+2025-11-26 19:42:22,901: t15.2025.03.30 val PER (greedy): 0.3241 | PER (beam): 0.3218
+2025-11-26 19:42:22,901: t15.2025.04.13 val PER (greedy): 0.3096 | PER (beam): 0.3024
+2025-11-26 19:42:22,901: New best test PER (beam) 0.1794 --> 0.1725
+2025-11-26 19:42:22,901: Checkpointing model
+2025-11-26 19:42:23,126: Saved model to checkpoint: trained_models/beam_test_beam6_lp1.0_len600/checkpoint/best_checkpoint
+2025-11-26 19:43:04,780: Train batch 10200: loss: 0.02 grad norm: 0.35 time: 0.170
+2025-11-26 19:43:46,395: Train batch 10400: loss: 0.02 grad norm: 0.34 time: 0.192
+2025-11-26 19:44:27,981: Train batch 10600: loss: 0.01 grad norm: 0.26 time: 0.195
+2025-11-26 19:45:10,237: Train batch 10800: loss: 0.02 grad norm: 0.47 time: 0.174
+2025-11-26 19:45:52,095: Train batch 11000: loss: 0.02 grad norm: 0.37 time: 0.220
+2025-11-26 19:46:33,050: Train batch 11200: loss: 0.02 grad norm: 0.39 time: 0.154
+2025-11-26 19:47:14,704: Train batch 11400: loss: 0.02 grad norm: 0.38 time: 0.249
+2025-11-26 19:47:56,048: Train batch 11600: loss: 0.03 grad norm: 0.41 time: 0.250
+2025-11-26 19:48:37,557: Train batch 11800: loss: 0.03 grad norm: 0.39 time: 0.171
+2025-11-26 19:49:19,512: Running test after training batch: 11999
+2025-11-26 19:50:26,003: Val batch 11999: PER (greedy): 0.1746 PER (beam): 0.1705 Cross Entropy Loss (avg): 0.7417 time: 66.491
+2025-11-26 19:50:26,003: t15.2023.08.13 val PER (greedy): 0.1414 | PER (beam): 0.1393
+2025-11-26 19:50:26,003: t15.2023.08.18 val PER (greedy): 0.1358 | PER (beam): 0.1350
+2025-11-26 19:50:26,003: t15.2023.08.20 val PER (greedy): 0.0945 | PER (beam): 0.0921
+2025-11-26 19:50:26,003: t15.2023.08.25 val PER (greedy): 0.0889 | PER (beam): 0.0889
+2025-11-26 19:50:26,003: t15.2023.08.27 val PER (greedy): 0.2347 | PER (beam): 0.2460
+2025-11-26 19:50:26,003: t15.2023.09.01 val PER (greedy): 0.0649 | PER (beam): 0.0593
+2025-11-26 19:50:26,003: t15.2023.09.03 val PER (greedy): 0.1675 | PER (beam): 0.1663
+2025-11-26 19:50:26,003: t15.2023.09.24 val PER (greedy): 0.1032 | PER (beam): 0.1044
+2025-11-26 19:50:26,003: t15.2023.09.29 val PER (greedy): 0.1800 | PER (beam): 0.1787
+2025-11-26 19:50:26,003: t15.2023.10.01 val PER (greedy): 0.2457 | PER (beam): 0.2431
+2025-11-26 19:50:26,003: t15.2023.10.06 val PER (greedy): 0.1076 | PER (beam): 0.1033
+2025-11-26 19:50:26,003: t15.2023.10.08 val PER (greedy): 0.3221 | PER (beam): 0.3194
+2025-11-26 19:50:26,003: t15.2023.10.13 val PER (greedy): 0.2389 | PER (beam): 0.2389
+2025-11-26 19:50:26,003: t15.2023.10.15 val PER (greedy): 0.2096 | PER (beam): 0.2050
+2025-11-26 19:50:26,003: t15.2023.10.20 val PER (greedy): 0.2517 | PER (beam): 0.2651
+2025-11-26 19:50:26,003: t15.2023.10.22 val PER (greedy): 0.1570 | PER (beam): 0.1537
+2025-11-26 19:50:26,003: t15.2023.11.03 val PER (greedy): 0.2130 | PER (beam): 0.2110
+2025-11-26 19:50:26,003: t15.2023.11.04 val PER (greedy): 0.0307 | PER (beam): 0.0307
+2025-11-26 19:50:26,003: t15.2023.11.17 val PER (greedy): 0.0482 | PER (beam): 0.0482
+2025-11-26 19:50:26,003: t15.2023.11.19 val PER (greedy): 0.0579 | PER (beam): 0.0739
+2025-11-26 19:50:26,003: t15.2023.11.26 val PER (greedy): 0.1319 | PER (beam): 0.1246
+2025-11-26 19:50:26,003: t15.2023.12.03 val PER (greedy): 0.1292 | PER (beam): 0.1282
+2025-11-26 19:50:26,003: t15.2023.12.08 val PER (greedy): 0.0999 | PER (beam): 0.0985
+2025-11-26 19:50:26,003: t15.2023.12.10 val PER (greedy): 0.1235 | PER (beam): 0.1183
+2025-11-26 19:50:26,003: t15.2023.12.17 val PER (greedy): 0.1798 | PER (beam): 0.1622
+2025-11-26 19:50:26,003: t15.2023.12.29 val PER (greedy): 0.1682 | PER (beam): 0.1620
+2025-11-26 19:50:26,003: t15.2024.02.25 val PER (greedy): 0.1194 | PER (beam): 0.1180
+2025-11-26 19:50:26,003: t15.2024.03.08 val PER (greedy): 0.2859 | PER (beam): 0.2831
+2025-11-26 19:50:26,003: t15.2024.03.15 val PER (greedy): 0.2502 | PER (beam): 0.2527
+2025-11-26 19:50:26,003: t15.2024.03.17 val PER (greedy): 0.1360 | PER (beam): 0.1185
+2025-11-26 19:50:26,003: t15.2024.05.10 val PER (greedy): 0.1932 | PER (beam): 0.1857
+2025-11-26 19:50:26,003: t15.2024.06.14 val PER (greedy): 0.2066 | PER (beam): 0.2035
+2025-11-26 19:50:26,003: t15.2024.07.19 val PER (greedy): 0.2709 | PER (beam): 0.2399
+2025-11-26 19:50:26,003: t15.2024.07.21 val PER (greedy): 0.1228 | PER (beam): 0.1172
+2025-11-26 19:50:26,003: t15.2024.07.28 val PER (greedy): 0.1235 | PER (beam): 0.1213
+2025-11-26 19:50:26,003: t15.2025.01.10 val PER (greedy): 0.3127 | PER (beam): 0.3196
+2025-11-26 19:50:26,003: t15.2025.01.12 val PER (greedy): 0.1424 | PER (beam): 0.1363
+2025-11-26 19:50:26,003: t15.2025.03.14 val PER (greedy): 0.3595 | PER (beam): 0.3580
+2025-11-26 19:50:26,003: t15.2025.03.16 val PER (greedy): 0.1623 | PER (beam): 0.1597
+2025-11-26 19:50:26,003: t15.2025.03.30 val PER (greedy): 0.2931 | PER (beam): 0.2828
+2025-11-26 19:50:26,003: t15.2025.04.13 val PER (greedy): 0.2625 | PER (beam): 0.2568
+2025-11-26 19:50:26,004: New best test PER (beam) 0.1725 --> 0.1705
+2025-11-26 19:50:26,004: Checkpointing model
+2025-11-26 19:50:26,239: Saved model to checkpoint: trained_models/beam_test_beam6_lp1.0_len600/checkpoint/best_checkpoint
+2025-11-26 19:50:26,355: Best avg val PER (beam) achieved: 0.17054
+2025-11-26 19:50:26,355: Total training time: 68.41 minutes
+
+================================================================================
+Training completed successfully!
+Final validation PER (beam): 0.17054
+================================================================================
+

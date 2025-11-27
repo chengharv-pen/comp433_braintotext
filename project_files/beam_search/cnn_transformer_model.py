@@ -339,7 +339,15 @@ class CNNTransformerForGeneration(nn.Module):
         # Track which beams are done (hit EOS)
         done = torch.zeros(batch_size * num_beams, dtype=torch.bool, device=device)
         
+        # Store finished sequences and their scores separately
+        # This ensures we don't lose good finished sequences during beam selection
+        finished_seqs = [[] for _ in range(batch_size)]  # List of (score, sequence) tuples per batch
+        
         for step in range(max_length - 1):
+            # Skip computation for beams that are all done
+            if done.all():
+                break
+                
             # Get current sequence length
             cur_len = sequences.size(1)
             
@@ -358,100 +366,125 @@ class CNNTransformerForGeneration(nn.Module):
             next_token_logits = logits[:, -1, :]  # [B * num_beams, vocab_size]
             next_token_scores = F.log_softmax(next_token_logits, dim=-1)  # [B * num_beams, vocab_size]
             
-            # Add current beam scores
+            # Add current beam scores (cumulative log probability)
             next_token_scores = next_token_scores + beam_scores.unsqueeze(-1)  # [B * num_beams, vocab_size]
             
-            # For finished beams, only allow PAD token
-            next_token_scores[done] = float('-inf')
-            next_token_scores[done, self.pad_token_id] = beam_scores[done]
+            # For finished beams, only allow EOS token to propagate (keeps the sequence unchanged effectively)
+            # Set all scores to -inf except for EOS which keeps the beam score
+            finished_mask = done.unsqueeze(-1).expand_as(next_token_scores)
+            next_token_scores = torch.where(
+                finished_mask,
+                torch.full_like(next_token_scores, float('-inf')),
+                next_token_scores
+            )
+            # For finished beams, allow them to "continue" with EOS (maintaining their score)
+            next_token_scores[done, self.eos_token_id] = beam_scores[done]
             
             # Reshape for selecting top-k across all beams for each batch element
             # [B, num_beams * vocab_size]
-            next_token_scores = next_token_scores.view(batch_size, num_beams * vocab_size)
+            next_token_scores_flat = next_token_scores.view(batch_size, num_beams * vocab_size)
             
-            # Select top 2 * num_beams to account for EOS
+            # Select top num_beams candidates per batch
             next_scores, next_tokens = torch.topk(
-                next_token_scores, 2 * num_beams, dim=1, largest=True, sorted=True
+                next_token_scores_flat, num_beams, dim=1, largest=True, sorted=True
             )
             
             # Compute beam indices and token indices
-            next_beam_indices = next_tokens // vocab_size  # Which beam
-            next_token_indices = next_tokens % vocab_size  # Which token
+            next_beam_indices = next_tokens // vocab_size  # Which beam [B, num_beams]
+            next_token_indices = next_tokens % vocab_size  # Which token [B, num_beams]
             
             # Build next sequences
-            # Gather the sequences from the selected beams
-            batch_beam_indices = (
-                torch.arange(batch_size, device=device).unsqueeze(-1) * num_beams + next_beam_indices
-            )  # [B, 2 * num_beams]
-            
-            # Select top num_beams for each batch
-            next_sequences = []
-            next_beam_scores = []
-            next_done = []
+            new_sequences = []
+            new_beam_scores = []
+            new_done = []
             
             for b in range(batch_size):
-                beam_idx = 0
-                for k in range(2 * num_beams):
-                    if beam_idx >= num_beams:
-                        break
-                    
-                    global_beam_idx = batch_beam_indices[b, k].item()
+                for k in range(num_beams):
+                    beam_idx = next_beam_indices[b, k].item()
+                    global_beam_idx = b * num_beams + beam_idx
                     token_id = next_token_indices[b, k].item()
                     score = next_scores[b, k].item()
                     
-                    # Skip if this results in a duplicate sequence
+                    # Get the sequence from the selected beam
+                    prev_seq = sequences[global_beam_idx]
+                    
+                    # Append new token
                     new_seq = torch.cat([
-                        sequences[global_beam_idx],
+                        prev_seq,
                         torch.tensor([token_id], device=device, dtype=torch.long)
                     ], dim=0)
                     
-                    next_sequences.append(new_seq)
+                    new_sequences.append(new_seq)
+                    new_beam_scores.append(score)
                     
-                    # Apply length penalty to score
-                    if token_id == self.eos_token_id or done[global_beam_idx]:
-                        # Apply length penalty for finished sequence
-                        seq_len = new_seq.size(0)
-                        length_factor = ((5 + seq_len) / 6) ** length_penalty
-                        next_beam_scores.append(score / length_factor)
-                        next_done.append(True)
-                    else:
-                        next_beam_scores.append(score)
-                        next_done.append(False)
+                    # Check if this beam is now done
+                    is_done = (token_id == self.eos_token_id) or done[global_beam_idx].item()
+                    new_done.append(is_done)
                     
-                    beam_idx += 1
+                    # If newly finished (hit EOS), store with length-normalized score
+                    if token_id == self.eos_token_id and not done[global_beam_idx].item():
+                        seq_len = new_seq.size(0) - 1  # exclude SOS for length calculation
+                        # Length penalty: ((5 + len) / 6) ^ alpha
+                        length_factor = ((5.0 + seq_len) / 6.0) ** length_penalty
+                        normalized_score = score / length_factor
+                        finished_seqs[b].append((normalized_score, new_seq.clone()))
             
             # Stack into tensors
-            # Pad sequences to same length
-            max_len = max(seq.size(0) for seq in next_sequences)
+            max_len = max(seq.size(0) for seq in new_sequences)
             padded_sequences = torch.full(
                 (batch_size * num_beams, max_len), 
                 self.pad_token_id, 
                 dtype=torch.long, 
                 device=device
             )
-            for i, seq in enumerate(next_sequences):
+            for i, seq in enumerate(new_sequences):
                 padded_sequences[i, :seq.size(0)] = seq
             
             sequences = padded_sequences
-            beam_scores = torch.tensor(next_beam_scores, device=device, dtype=torch.float)
-            done = torch.tensor(next_done, device=device, dtype=torch.bool)
-            
-            # Check if all beams are done
-            if done.view(batch_size, num_beams).all(dim=1).all():
-                break
+            beam_scores = torch.tensor(new_beam_scores, device=device, dtype=torch.float)
+            done = torch.tensor(new_done, device=device, dtype=torch.bool)
         
         # Select best sequence for each batch element
-        beam_scores = beam_scores.view(batch_size, num_beams)
-        best_beam_indices = beam_scores.argmax(dim=1)  # [B]
+        # Compare best active beam with best finished sequence
+        best_sequences = []
         
-        # Gather best sequences
-        sequences = sequences.view(batch_size, num_beams, -1)
-        best_sequences = torch.stack([
-            sequences[b, best_beam_indices[b]] 
-            for b in range(batch_size)
-        ])
+        for b in range(batch_size):
+            # Get best score among active beams (apply length penalty for fair comparison)
+            batch_beam_scores = beam_scores[b * num_beams: (b + 1) * num_beams]
+            batch_sequences = sequences[b * num_beams: (b + 1) * num_beams]
+            
+            best_active_idx = batch_beam_scores.argmax().item()
+            best_active_seq = batch_sequences[best_active_idx]
+            best_active_score = batch_beam_scores[best_active_idx].item()
+            
+            # Apply length penalty to active beam score for fair comparison
+            active_len = (best_active_seq != self.pad_token_id).sum().item() - 1  # exclude SOS
+            active_length_factor = ((5.0 + active_len) / 6.0) ** length_penalty
+            best_active_normalized = best_active_score / active_length_factor
+            
+            # Compare with finished sequences
+            best_seq = best_active_seq
+            best_score = best_active_normalized
+            
+            for finished_score, finished_seq in finished_seqs[b]:
+                if finished_score > best_score:
+                    best_score = finished_score
+                    best_seq = finished_seq
+            
+            best_sequences.append(best_seq)
         
-        return best_sequences
+        # Pad all sequences to same length
+        max_len = max(seq.size(0) for seq in best_sequences)
+        result = torch.full(
+            (batch_size, max_len),
+            self.pad_token_id,
+            dtype=torch.long,
+            device=device
+        )
+        for b, seq in enumerate(best_sequences):
+            result[b, :seq.size(0)] = seq
+        
+        return result
 
     def greedy_decode(self, memory, max_length=100):
         """
