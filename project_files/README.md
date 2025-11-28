@@ -27,6 +27,12 @@ docker run -it --rm --gpus all \
 ```
 From here, we will assume that the Docker container is running.
 
+# Running a Jupyter Notebook within Docker
+
+```
+jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+```
+
 # Training a Model
 
 In `./project_files/<model_type>`, you can run
@@ -61,7 +67,7 @@ cd ../../../../
 sysctl vm.overcommit_memory=1
 redis-server --daemonize yes
 ```
-WARNING: THE FOLLOWING COMMAND NOT WORK, DEPENDING ON YOUR SYSTEM'S RAM/VRAM. (this only applies to the RNN and the CNN-Transformer [encoder-only] models for now)
+WARNING: THE FOLLOWING COMMAND MAY NOT WORK, DEPENDING ON YOUR SYSTEM'S RAM/VRAM. (applicable to the RNN and the CNN-Transformer [encoder-only] models)
 
 If there is not enough RAM/VRAM in your system, please modify the `model_name` parameter in the `build_opt()` method, located at `./language_model/language-model-standalone.py` [line 96]. This parameter is meant to define the model to pull from Hugging Face.
 - Facebook's OPT 6.7b requires a GPU with at least ~12.4 GB of VRAM to load for inference
