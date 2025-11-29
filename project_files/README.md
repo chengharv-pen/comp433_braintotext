@@ -29,8 +29,14 @@ From here, we will assume that the Docker container is running.
 
 # Running a Jupyter Notebook within Docker
 
+Whenever this command is executed
+
 ```
 jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+```
+Click the bottom link that is formatted as such:
+```
+http://<ip_address>:8888/tree?token=<token>
 ```
 
 # Training a Model
