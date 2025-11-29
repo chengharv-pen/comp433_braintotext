@@ -73,9 +73,9 @@ cd ../../../../
 sysctl vm.overcommit_memory=1
 redis-server --daemonize yes
 ```
-WARNING: THE FOLLOWING COMMAND MAY NOT WORK, DEPENDING ON YOUR SYSTEM'S RAM/VRAM. (applicable to the RNN and the CNN-Transformer [encoder-only] models)
+WARNING: THE FOLLOWING COMMAND MAY NOT WORK, DEPENDING ON YOUR SYSTEM'S RAM/VRAM.
 
-If there is not enough RAM/VRAM in your system, please modify the `model_name` parameter in the `build_opt()` method, located at `./language_model/language-model-standalone.py` [line 96]. This parameter is meant to define the model to pull from Hugging Face.
+If there is not enough RAM/VRAM in your system, please modify the `model_name` parameter in the `build_opt()` method, located at `./language_model/language-model-standalone.py` [line 96]. This parameter is meant to define the OPT model to pull from Hugging Face.
 - Facebook's OPT 6.7b requires a GPU with at least ~12.4 GB of VRAM to load for inference
 ```
 python language_model/language-model-standalone.py --lm_path language_model/pretrained_language_models/openwebtext_1gram_lm_sil --do_opt --nbest 100 --acoustic_scale 0.325 --blank_penalty 90 --alpha 0.55 --redis_ip localhost --gpu_number 0 &
