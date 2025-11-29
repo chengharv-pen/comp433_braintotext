@@ -11,6 +11,8 @@ Assuming that the user is located at project root, run
 python download_data.py
 ```
 
+If this does not work for some reason, then download it manually from <a href="https://datadryad.org/dataset/doi:10.5061/dryad.dncjsxm85">Dryad</a>, place it in the `./data` directory and unzip the zip files in the same directory.
+
 # Docker
 
 We provide a Docker container to make it easier to run the code.
