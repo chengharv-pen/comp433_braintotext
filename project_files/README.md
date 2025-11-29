@@ -18,8 +18,11 @@ If this does not work for some reason, then download it manually from <a href="h
 We provide a Docker container to make it easier to run the code.
 ```
 docker pull chengharvp/comp433-b2txt25-test
+```
 
-# Change shm-size if you have a lot more RAM. 12g signifies 12GB RAM.
+Change shm-size if you have a lot more RAM. 12g signifies 12GB RAM.
+
+```
 docker run -it --rm --gpus all \
   --privileged \
   --shm-size=12g \
