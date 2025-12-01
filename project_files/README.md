@@ -1,6 +1,6 @@
 # COMP 433 Project Files
 
-We require that the command `nvidia-smi` works, if using a NVIDIA GPU 
+We require that the command `nvidia-smi` works, if using a NVIDIA GPU.
 
 We also require ~50GB of available storage space to be safe.
 
@@ -9,6 +9,8 @@ The user should clone this repository first. (if in Windows 11, please clone it 
 ```
 git clone https://github.com/chengharv-pen/comp433_braintotext.git
 ```
+
+From here, we will assume that Python is installed.
 
 # Downloading Data
 
@@ -42,7 +44,7 @@ docker run -it --rm --gpus all \
   -v ./:/workspace/comp433_braintotext25 \
   chengharvp/comp433-b2txt25-test:latest
 ```
-From here, we will assume that the Docker container is running.
+From here, we will assume that the Docker container is running. To exit the container, use the `logout` command.
 
 # Running a Jupyter Notebook within Docker
 
@@ -64,9 +66,11 @@ Copy the token in the bottom link
 http://<ip_address>:8888/tree?token=<token>
 ```
 
-Then navigate to `http://localhost:8888/` and paste the token to access Jupyter.
+Then navigate to `http://localhost:8888/` and paste the `<token>` to access Jupyter.
 
 # Training a Model
+
+If hyperparameters need to be modified, please change the contents of `<model_type>_args.yaml`.
 
 In `./project_files/<model_type>`, you can run
 
@@ -94,8 +98,6 @@ mv best_checkpoint.zip best_checkpoint
 ```
 
 For this project, we restricted ourselves to only using the 1-gram decoder, since we do not have enough RAM to run the 3-gram (~60GB RAM) and the 5-gram (~300GB RAM) decoders.
-
-NOTE: `python setup.py install` is very slow on Windows 11, you may try to move the project inside WSL2 and emulate the above setup.
 ```
 cd comp433_braintotext25/language_model/runtime/server/x86
 conda activate b2txt25_lm
@@ -108,7 +110,8 @@ redis-server --daemonize yes
 WARNING: THE FOLLOWING COMMAND MAY NOT WORK, DEPENDING ON YOUR SYSTEM'S RAM/VRAM.
 
 If there is not enough RAM/VRAM in your system, please modify the `model_name` parameter in the `build_opt()` method, located at `./language_model/language-model-standalone.py` [line 96]. This parameter is meant to define the OPT model to pull from Hugging Face.
-- Facebook's OPT 6.7b requires a GPU with at least ~12.4 GB of VRAM to load for inference
+- Facebook's OPT 125m is the default OPT model for this project.
+- Facebook's OPT 6.7b requires a GPU with at least ~12.4 GB of VRAM to load for inference.
 ```
 python language_model/language-model-standalone.py --lm_path language_model/pretrained_language_models/openwebtext_1gram_lm_sil --do_opt --nbest 100 --acoustic_scale 0.325 --blank_penalty 90 --alpha 0.55 --redis_ip localhost --gpu_number 0 &
 ```
