@@ -4,7 +4,7 @@ We require that the command `nvidia-smi` works, if using a NVIDIA GPU.
 
 We also require ~50GB of available storage space to be safe.
 
-The user should clone this repository first. (if in Windows 11, please clone it in WSL2 and do everything in there)
+The user should clone this repository first. If the user is on Windows 11, please clone it in WSL2 and do everything in WSL2.
 
 ```
 git clone https://github.com/chengharv-pen/comp433_braintotext.git
