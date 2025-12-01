@@ -2,7 +2,13 @@
 
 We require that the command `nvidia-smi` works, if using a NVIDIA GPU 
 
-The user should clone this repository first.
+We also require ~50GB of available storage space to be safe.
+
+The user should clone this repository first. (if in Windows 11, please clone it in WSL2 and do everything in there)
+
+```
+git clone https://github.com/chengharv-pen/comp433_braintotext.git
+```
 
 # Downloading Data
 
@@ -16,6 +22,12 @@ If this does not work for some reason, then download it manually from <a href="h
 # Docker
 
 We provide a Docker container to make it easier to run the code.
+
+- If the user is on Windows 11, please install Docker Desktop and start Docker Desktop. If there are issues starting Docker Desktop, make sure that these Windows Features are enabled and restart the computer.
+![Windows Features](./Screenshot_29.png "Red Boxes")
+- If the user is on Linux, please install the package `docker.io`.
+
+Then run this command
 ```
 docker pull chengharvp/comp433-b2txt25-test
 ```
@@ -39,10 +51,20 @@ Whenever this command is executed
 ```
 jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
 ```
+
+### Linux:
 Click the bottom link that is formatted as such:
 ```
 http://<ip_address>:8888/tree?token=<token>
 ```
+
+### Windows:
+Copy the token in the bottom link
+```
+http://<ip_address>:8888/tree?token=<token>
+```
+
+Then navigate to `http://localhost:8888/` and paste the token to access Jupyter.
 
 # Training a Model
 
@@ -63,12 +85,17 @@ checkpoint_dir: trained_models/<model_folder>/checkpoint # directory to save che
 
 The <a href="https://drive.google.com/drive/folders/1GCUhWd1V7r5I-W7cfLoYWKNOVCWrxW_5">Google Drive</a>'s folders are structured as `<model_type>/<model_folder(s)>`
 
-You can download a model folder from there, and place it in `./project_files/<model_type>/trained_models/<model_folder>`
+You can download a model folder from there, and place it in `./project_files/<model_type>/trained_models/<model_folder>`. The zip file needs to be extracted in place.
 
 Specifically for `<model_folder>`, you need to modify a file name since Google Drive downloads it as a zip. In `<model_folder>/checkpoint/`, rename `best_checkpoint.zip` to `best_checkpoint`.
 
+```
+mv best_checkpoint.zip best_checkpoint
+```
+
 For this project, we restricted ourselves to only using the 1-gram decoder, since we do not have enough RAM to run the 3-gram (~60GB RAM) and the 5-gram (~300GB RAM) decoders.
 
+NOTE: `python setup.py install` is very slow on Windows 11, you may try to move the project inside WSL2 and emulate the above setup.
 ```
 cd comp433_braintotext25/language_model/runtime/server/x86
 conda activate b2txt25_lm
